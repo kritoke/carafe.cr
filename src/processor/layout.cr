@@ -35,7 +35,7 @@ class Criss::Processor::Layout < Criss::Processor
 
     content = input.gets_to_end
 
-    while true
+    loop do
       layout_template, frontmatter = layouts[layout_name.to_s]
 
       variables = {

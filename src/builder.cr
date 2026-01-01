@@ -12,8 +12,8 @@ class Criss::Builder
       puts "Building #{collection.name}..."
       begin
         run_processors(site, collection.resources)
-      rescue exc
-        raise Exception.new("Error running processors for collection #{collection.name}", cause: exc)
+      rescue ex
+        raise Exception.new("Error running processors for collection #{collection.name}", cause: ex)
       end
     end
   end
@@ -29,8 +29,8 @@ class Criss::Builder
       File.open(output_path, "w") do |file|
         begin
           site.run_processor(file, resource)
-        rescue exc
-          raise Exception.new("Error running processor for #{resource.slug}", cause: exc)
+        rescue ex
+          raise Exception.new("Error running processor for #{resource.slug}", cause: ex)
         end
       end
     end

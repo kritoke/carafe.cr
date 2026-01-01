@@ -120,11 +120,11 @@ struct Criss::Pipeline
       segments = [] of Processor
       transformations = @transforms.dup
 
-      while true
+      loop do
         format_first = format.partition('.').first
-        transform = transformations.find do |transform|
-          transform.from == format || transform.from == format_first ||
-            (transform.from_wildcard? && transform.to_first != format_first)
+        transform = transformations.find do |candidate|
+          candidate.from == format || candidate.from == format_first ||
+            (candidate.from_wildcard? && candidate.to_first != format_first)
         end
 
         break unless transform
@@ -137,19 +137,6 @@ struct Criss::Pipeline
         when {false, false}
           format = transform.to
         end
-
-        #
-        # #segments << transform.processor
-
-        # if transform.from_first != transform.to_first
-        #   processors, transformations = transformations.partition do |t|
-        #     transform.from == t.from && transform.to == t.to
-        #   end
-        #   processors = processors.map &.processor
-        # else
-        #   transformations.delete(transform)
-        #   processors = [transform.processor]
-        # end
 
         segments << transform.processor
       end

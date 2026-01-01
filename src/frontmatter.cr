@@ -10,7 +10,7 @@ struct Criss::Frontmatter
     @data[YAML::Any.new(key)]?
   end
 
-  def fetch(key : String) : YAML::Any?
+  def fetch(key : String, &) : YAML::Any?
     @data.fetch(YAML::Any.new(key)) do
       yield
     end
@@ -32,7 +32,7 @@ struct Criss::Frontmatter
     @data.has_key?(YAML::Any.new(key))
   end
 
-  def each
+  def each(&)
     @data.each do |key, value|
       yield key.as_s, value
     end
@@ -83,7 +83,7 @@ struct Criss::Frontmatter
 
     dash_counter = 0
     expect_lf = false
-    peek.each_with_index do |byte, index|
+    peek.each do |byte|
       case byte
       when '-'
         return false if expect_lf

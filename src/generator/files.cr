@@ -20,11 +20,11 @@ class Criss::Generator::Files < Criss::Generator
 
       slug = full_path.lchop(directory).lchop('/')
 
-      if !includes.any? { |glob| File.match?(glob, slug) } && (
+      if !includes.any? { |pattern| File.match?(pattern, slug) } && (
            slug.starts_with?('_') ||
            # TODO: Don't traverse hidden directories in the first place.
            slug.includes?("/_") ||
-           excludes.any? { |glob| File.match?(glob, slug) }
+           excludes.any? { |pattern| File.match?(pattern, slug) }
          )
         next
       end
@@ -33,8 +33,8 @@ class Criss::Generator::Files < Criss::Generator
         frontmatter, content = load_content(full_path)
 
         yield slug, content, frontmatter
-      rescue exc
-        raise Exception.new("Error in #{self.class.name} for file #{slug} (#{directory})", cause: exc)
+      rescue ex
+        raise Exception.new("Error in #{self.class.name} for file #{slug} (#{directory})", cause: ex)
       end
     end
   end

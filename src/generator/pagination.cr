@@ -34,7 +34,7 @@ class Criss::Generator::Pagination < Criss::Generator
     if key = config["collection"]?
       items = site.collections[key].resources
       permalink ||= "/#{key}/page/:num/"
-    elsif key = config["data"]?
+    elsif config["data"]?
       raise "not implemented"
     end
 

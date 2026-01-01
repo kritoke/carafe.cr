@@ -12,8 +12,6 @@ targets:
 license: MIT
 
 dependencies:
-  sass:
-    github: straight-shoota/sass.cr
   crinja:
     github: straight-shoota/crinja
     branch: master 

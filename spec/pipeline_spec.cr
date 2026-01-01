@@ -34,10 +34,6 @@ describe Criss::Pipeline::Builder do
       Criss::Processor::Markdown,
       Criss::Processor::Layout,
     ]
-    builder.create_pipeline("sass").processors.map(&.class).should eq [
-      Criss::Processor::Sass,
-      Criss::Processor::Layout,
-    ]
     builder.create_pipeline("jinja.html").processors.map(&.class).should eq [
       Criss::Processor::Crinja,
       Criss::Processor::Layout,
@@ -62,8 +58,6 @@ describe Criss::Pipeline::Builder do
     site = Criss::Site.new
     builder = Criss::Pipeline::Builder.new(site)
 
-    builder.output_ext(".scss").should eq ".css"
-    builder.output_ext(".sass").should eq ".css"
     builder.output_ext(".css").should eq nil
     builder.output_ext(".html").should eq nil
     builder.output_ext(".md").should eq ".html"
@@ -74,12 +68,6 @@ describe Criss::Pipeline::Builder do
   it "#output_ext_for" do
     site = Criss::Site.new
     builder = Criss::Pipeline::Builder.new(site)
-
-    builder.output_ext_for(Criss::Resource.new(site, "bar.sass", frontmatter: Criss::Frontmatter.new)).should eq ".css"
-    builder.output_ext_for(Criss::Resource.new(site, "bar.sass", frontmatter: nil)).should eq ".sass"
-
-    builder.output_ext_for(Criss::Resource.new(site, "bar.scss", frontmatter: Criss::Frontmatter.new)).should eq ".css"
-    builder.output_ext_for(Criss::Resource.new(site, "bar.scss", frontmatter: nil)).should eq ".scss"
 
     builder.output_ext_for(Criss::Resource.new(site, "bar.css", frontmatter: Criss::Frontmatter.new)).should eq ".css"
     builder.output_ext_for(Criss::Resource.new(site, "bar.html", frontmatter: Criss::Frontmatter.new)).should eq ".html"

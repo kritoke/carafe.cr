@@ -57,11 +57,6 @@ describe Criss::Resource do
     resource.has_frontmatter?.should be_false
   end
 
-  it "#permalink" do
-    test_resource("bar.sass", frontmatter: Criss::Frontmatter.new).permalink.should eq "/bar.css"
-    test_resource("bar.scss", frontmatter: Criss::Frontmatter.new).permalink.should eq "/bar.css"
-  end
-
   it "#expand_permalink" do
     test_resource("2018-10-23-test.md", frontmatter: Criss::Frontmatter{"categories" => "foo bar"}).expand_permalink("pretty").should eq "/foo/bar/2018/10/23/test/"
   end

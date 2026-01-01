@@ -12,10 +12,6 @@ shards:
     git: https://github.com/icyleaf/markd.git
     version: 0.5.0
 
-  sass:
-    git: https://github.com/straight-shoota/sass.cr.git
-    version: 0.6.0
-
   serve:
     git: https://github.com/superpaintman/serve.git
     version: 0.1.1

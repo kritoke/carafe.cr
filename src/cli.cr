@@ -16,7 +16,7 @@ class Criss::CLI
   end
 
   def initialize(@output = STDOUT, @error = STDERR)
-    @logger = Log.for("carafe-cr")
+    @logger = Log.for("carafe")
     Log.setup(:info, Log::IOBackend.new(@output))
     @source_path = "."
 

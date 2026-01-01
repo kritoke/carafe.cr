@@ -81,7 +81,7 @@ class Criss::Resource
       when Time
         raw
       when String
-        Time.parse_local(raw, "%Y-%m-%d %H:%M")
+        Time.parse(raw, "%Y-%m-%d %H:%M", Time::Location.local)
       else
         raise "Unknown date format (#{raw})"
       end
@@ -90,7 +90,7 @@ class Criss::Resource
       # elsif @slug && File.exists?(@slug)
       #   File.mtime(@slug)
     else
-      Time.now.at_beginning_of_day
+      Time.local.at_beginning_of_day
     end
   end
 
@@ -227,7 +227,7 @@ class Criss::Resource
 
     if basename && (data = basename.match /^(?:(\d{2}\d{2}?)-(\d{1,2})-(\d{1,2})-)?(.+)$/)
       if data[1]?
-        date = Time.new(data[1].to_i, data[2].to_i, data[3].to_i)
+        date = Time.local(data[1].to_i, data[2].to_i, data[3].to_i)
       end
       name = data[4]
     end

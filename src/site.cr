@@ -20,13 +20,14 @@ class Criss::Site
 
   getter pipeline_builder : Pipeline::Builder
 
+  @time : Time
+
   def initialize(@config : Config = Config.new)
+    @time = Time.local
     @site_dir = File.expand_path(config.site_dir)
 
     @pipeline_builder = uninitialized Pipeline::Builder
     @pipeline_builder = Pipeline::Builder.new(self)
-
-    @time = Time.now
 
     init_collections
   end

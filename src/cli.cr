@@ -2,9 +2,10 @@ require "./site"
 require "./builder"
 require "./server"
 require "option_parser"
+require "log"
 
 class Criss::CLI
-  getter logger : Logger
+  getter logger : Log
   getter output : IO
   getter error : IO
   getter source_path : String
@@ -15,13 +16,14 @@ class Criss::CLI
   end
 
   def initialize(@output = STDOUT, @error = STDERR)
-    @logger = Logger.new(@output)
+    @logger = Log.for("carafe-cr")
+    Log.setup(:info, Log::IOBackend.new(@output))
     @source_path = "."
 
     @option_parser = OptionParser.new.tap do |opts|
       opts.on("--version", "") { display_version_and_exit }
-      opts.on("-v", "--verbose", "") { logger.level = Logger::Severity::DEBUG }
-      opts.on("-q", "--quiet", "") { logger.level = Logger::Severity::WARN }
+      opts.on("-v", "--verbose", "") { Log.setup(:debug, Log::IOBackend.new(@output)) }
+      opts.on("-q", "--quiet", "") { Log.setup(:warn, Log::IOBackend.new(@output)) }
       opts.on("-h", "--help", "") { display_help_and_exit }
       # opts.on("-b HOST", "--bind=HOST", "Bind to host (default: #{Server::DEFAULT_HOST})") do |host|
       #  server.host = host
@@ -172,11 +174,11 @@ class Criss::CLI
   end
 
   private def display_version_and_exit
-    #puts Criss::VERSION
+    # puts Criss::VERSION
     exit
   end
 
-  private def profile(section)
+  private def profile(section, &)
     @output.print section
     (40 - section.size).times { @output.print '.' }
 

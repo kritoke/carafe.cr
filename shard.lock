@@ -1,0 +1,22 @@
+version: 2.0
+shards:
+  ameba:
+    git: https://github.com/crystal-ameba/ameba.git
+    version: 1.7.0-dev+git.commit.40bb2591c66292a9e2ec1c8e25c14e8fab0d183d
+
+  crinja:
+    git: https://github.com/straight-shoota/crinja.git
+    version: 0.8.1+git.commit.8231d59435e80d3dc1dad600b33d11d886cb34aa
+
+  markd:
+    git: https://github.com/icyleaf/markd.git
+    version: 0.5.0
+
+  sass:
+    git: https://github.com/straight-shoota/sass.cr.git
+    version: 0.6.0
+
+  serve:
+    git: https://github.com/superpaintman/serve.git
+    version: 0.1.1
+

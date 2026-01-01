@@ -1,12 +1,12 @@
-name: criss
+name: carafe
 version: 0.1.0
-crystal: 0.26.1
+crystal: '>= 1.18.2'
 
 authors:
-  - Johannes Müller <straightshoota@gmail.com>
+  - kritoke <3081486+kritoke@users.noreply.github.com>
 
 targets:
-  criss:
+  carafe:
     main: src/app.cr
 
 license: MIT
@@ -22,3 +22,8 @@ dependencies:
     github: icyleaf/markd
   serve:
     github: superpaintman/serve
+
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+    branch: master

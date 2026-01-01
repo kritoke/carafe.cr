@@ -40,7 +40,8 @@ class Criss::Server
       resource = @site.find(path)
 
       unless resource
-        context.response.respond_with_error "Not Found", code: 404
+        context.response.status_code = 404
+        context.response.print "Not Found"
         context.response.close
         return
       end

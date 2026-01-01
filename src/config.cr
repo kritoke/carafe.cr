@@ -10,7 +10,6 @@ class Criss::Config
     include YAML::Serializable::Unmapped
     include ::Crinja::Object::Auto
     include Util::YAMLUnmapped
-    include Util::DefAndEquals
 
     property? output : Bool = true
 
@@ -29,13 +28,14 @@ class Criss::Config
 
       result
     end
+
+    include Util::DefAndEquals
   end
 
   @[Crinja::Attributes]
   class Defaults
     include YAML::Serializable
     include ::Crinja::Object::Auto
-    include Util::DefAndEquals
 
     property scope : Scope = Criss::Config::Scope.new
 
@@ -43,13 +43,14 @@ class Criss::Config
 
     def initialize(@scope : Scope = Scope.new, @values : Criss::Frontmatter = Criss::Frontmatter.new)
     end
+
+    include Util::DefAndEquals
   end
 
   @[Crinja::Attributes]
   struct Scope
     include YAML::Serializable
     include ::Crinja::Object::Auto
-    include Util::DefAndEquals
 
     getter path : String? = nil
 
@@ -57,6 +58,8 @@ class Criss::Config
 
     def initialize(@path : String? = nil, @type : String? = nil)
     end
+
+    include Util::DefAndEquals
   end
 
   def initialize(@site_dir : String = ".")
@@ -67,7 +70,6 @@ class Criss::Config
   include YAML::Serializable::Unmapped
   include ::Crinja::Object::Auto
   include Util::YAMLUnmapped
-  include Util::DefAndEquals
 
   property site_dir : String = "."
   property source : String = "."
@@ -129,6 +131,8 @@ class Criss::Config
   property? quiet : Bool = false
   property? verbose : Bool = false
   property defaults : Array(Criss::Config::Defaults) = [] of Criss::Config::Defaults
+
+  include Util::DefAndEquals
 
   # property liquid
   #   property error_mode : String = "warn"

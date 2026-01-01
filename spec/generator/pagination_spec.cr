@@ -9,8 +9,8 @@ describe Criss::Generator::Pagination do
 
     index = Criss::Resource.new(site, "index.html", frontmatter: Criss::Frontmatter{
       "paginate" => Hash(YAML::Any, YAML::Any){
-        YAML::Any.new("collection") => YAML::Any.new("posts")
-      }
+        YAML::Any.new("collection") => YAML::Any.new("posts"),
+      },
     })
     site.files << index
 
@@ -28,8 +28,8 @@ describe Criss::Generator::Pagination do
     index = Criss::Resource.new(site, "index.html", frontmatter: Criss::Frontmatter{
       "paginate" => Hash(YAML::Any, YAML::Any){
         YAML::Any.new("collection") => YAML::Any.new("posts"),
-        YAML::Any.new("sort") => YAML::Any.new(true)
-      }
+        YAML::Any.new("sort")       => YAML::Any.new(true),
+      },
     })
     site.files << index
 
@@ -48,8 +48,8 @@ describe Criss::Generator::Pagination do
     index = Criss::Resource.new(site, "index.html", frontmatter: Criss::Frontmatter{
       "paginate" => Hash(YAML::Any, YAML::Any){
         YAML::Any.new("collection") => YAML::Any.new("posts"),
-        YAML::Any.new("per_page") => YAML::Any.new(2_i64)
-      }
+        YAML::Any.new("per_page")   => YAML::Any.new(2_i64),
+      },
     })
     site.files << index
 

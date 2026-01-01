@@ -43,7 +43,7 @@ class Criss::Processor::Layout < Criss::Processor
         "layout"  => ::Crinja.variables(frontmatter),
         "post"    => resource,
         "page"    => resource,
-        "site"    => @site
+        "site"    => @site,
       }
 
       layout_name = frontmatter["layout"]?

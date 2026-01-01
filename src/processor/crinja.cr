@@ -16,8 +16,8 @@ class Criss::Processor::Crinja < Criss::Processor
   end
 
   def initialize(@site : Site = Site.new,
-    includes_dir : String = File.join(site.config.source, site.config.includes_dir),
-    site_dir : String = site.site_dir)
+                 includes_dir : String = File.join(site.config.source, site.config.includes_dir),
+                 site_dir : String = site.site_dir)
     @crinja = ::Crinja.liquid_support
     @crinja.loader = ::Crinja::Loader::FileSystemLoader.new(File.join(site_dir, includes_dir))
   end
@@ -25,8 +25,8 @@ class Criss::Processor::Crinja < Criss::Processor
   def process(resource : Resource, input : IO, output : IO) : Bool
     template = ::Crinja::Template.new(input.gets_to_end, crinja, resource.name || "", resource.slug || "")
     vars = ::Crinja.variables({
-      "page" => resource,
-      "site" => @site,
+      "page"      => resource,
+      "site"      => @site,
       "paginator" => resource.paginator,
     })
 

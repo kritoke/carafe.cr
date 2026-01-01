@@ -12,7 +12,7 @@ class Criss::Server
   def initialize(@site : Site, @uri : String | URI)
     @server = HTTP::Server.new [
       HTTP::ErrorHandler.new,
-      Handler.new(@site)
+      Handler.new(@site),
     ]
   end
 
@@ -48,7 +48,6 @@ class Criss::Server
       @site.run_processor(context.response, resource)
     end
   end
-
 
   # DEFAULT_HOST = "0.0.0.0"
   # DEFAULT_PORT = 3000

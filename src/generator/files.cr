@@ -14,18 +14,18 @@ class Criss::Generator::Files < Criss::Generator
     end
   end
 
-  def self.load_files(glob, directory, excludes = [] of String, includes = [] of String)
+  def self.load_files(glob, directory, excludes = [] of String, includes = [] of String, &)
     Dir.glob(glob) do |full_path|
       next if File.directory?(full_path)
 
       slug = full_path.lchop(directory).lchop('/')
 
       if !includes.any? { |glob| File.match?(glob, slug) } && (
-            slug.starts_with?('_') ||
-            # TODO: Don't traverse hidden directories in the first place.
-            slug.includes?("/_") ||
-            excludes.any? { |glob| File.match?(glob, slug) }
-          )
+           slug.starts_with?('_') ||
+           # TODO: Don't traverse hidden directories in the first place.
+           slug.includes?("/_") ||
+           excludes.any? { |glob| File.match?(glob, slug) }
+         )
         next
       end
 

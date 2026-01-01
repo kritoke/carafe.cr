@@ -32,7 +32,7 @@ describe Criss::Processor::Layout do
     processor = Criss::Processor::Layout.new(layouts_path: "spec/fixtures/simple-site/_layouts")
     resource = Criss::Resource.new(site, "foo.md", frontmatter: Criss::Frontmatter{"layout" => "simple"})
 
-    processor.process(resource,"Laus deo semper").should eq <<-'HTML'
+    processor.process(resource, "Laus deo semper").should eq <<-'HTML'
       <html>
         <body>
           Laus deo semper

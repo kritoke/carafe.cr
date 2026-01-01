@@ -20,14 +20,14 @@ describe Criss::Site do
 
       config.defaults = [
         Criss::Config::Defaults.new(Criss::Config::Scope.new, Criss::Frontmatter{"match_all" => true}),
-        Criss::Config::Defaults.new(Criss::Config::Scope.new(path: "*.md"), Criss::Frontmatter{"path_md" => true})
+        Criss::Config::Defaults.new(Criss::Config::Scope.new(path: "*.md"), Criss::Frontmatter{"path_md" => true}),
       ]
 
       site = Criss::Site.new(config)
 
       site.defaults_for("foo.md", "post").should eq Criss::Frontmatter{
         "match_all" => true,
-        "path_md" => true
+        "path_md"   => true,
       }
     end
 
@@ -36,14 +36,14 @@ describe Criss::Site do
 
       config.defaults = [
         Criss::Config::Defaults.new(Criss::Config::Scope.new, Criss::Frontmatter{"match_all" => true}),
-        Criss::Config::Defaults.new(Criss::Config::Scope.new(type: "post"), Criss::Frontmatter{"type_post" => true})
+        Criss::Config::Defaults.new(Criss::Config::Scope.new(type: "post"), Criss::Frontmatter{"type_post" => true}),
       ]
 
       site = Criss::Site.new(config)
 
       site.defaults_for("foo.md", "post").should eq Criss::Frontmatter{
         "match_all" => true,
-        "type_post" => true
+        "type_post" => true,
       }
     end
 
@@ -55,7 +55,7 @@ describe Criss::Site do
         Criss::Config::Defaults.new(Criss::Config::Scope.new(type: "post"), Criss::Frontmatter{"type_post" => true}),
         Criss::Config::Defaults.new(Criss::Config::Scope.new(path: "*.md"), Criss::Frontmatter{"path_md" => true}),
         Criss::Config::Defaults.new(Criss::Config::Scope.new(type: "page"), Criss::Frontmatter{"type_page" => true}),
-        Criss::Config::Defaults.new(Criss::Config::Scope.new(path: "*.html"), Criss::Frontmatter{"path_html" => true})
+        Criss::Config::Defaults.new(Criss::Config::Scope.new(path: "*.html"), Criss::Frontmatter{"path_html" => true}),
       ]
 
       site = Criss::Site.new(config)
@@ -63,7 +63,7 @@ describe Criss::Site do
       site.defaults_for("foo.md", "post").should eq Criss::Frontmatter{
         "match_all" => true,
         "type_post" => true,
-        "path_md" => true
+        "path_md"   => true,
       }
     end
 
@@ -72,7 +72,7 @@ describe Criss::Site do
 
       config.defaults = [
         Criss::Config::Defaults.new(Criss::Config::Scope.new, Criss::Frontmatter{"foo" => "bar"}),
-        Criss::Config::Defaults.new(Criss::Config::Scope.new, Criss::Frontmatter{"foo" => "baz"})
+        Criss::Config::Defaults.new(Criss::Config::Scope.new, Criss::Frontmatter{"foo" => "baz"}),
       ]
 
       site = Criss::Site.new(config)

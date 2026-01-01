@@ -79,9 +79,9 @@ describe Criss::Resource do
     it "falls back to defaults" do
       site = Criss::Site.new
 
-      defaults = Criss::Frontmatter {
+      defaults = Criss::Frontmatter{
         "foo" => "bar",
-        "baz" => "not-baz"
+        "baz" => "not-baz",
       }
 
       resource = Criss::Resource.new(site, "foo.md", frontmatter: Criss::Frontmatter{"baz" => "baz"}, defaults: defaults)

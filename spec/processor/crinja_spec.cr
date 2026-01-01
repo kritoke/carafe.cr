@@ -28,9 +28,9 @@ describe Criss::Processor::Crinja do
     resource = Criss::Resource.new(nil, "foo.md")
     site.files << resource
 
-    run_processor(resource, "{{ site.destination }}",site: site).should eq "_site"
-    run_processor(resource, "{{ site.title }}",site: site).should eq "Foo Site"
-    run_processor(resource, "{{ site.files[0].slug }}",site: site).should eq "foo.md"
+    run_processor(resource, "{{ site.destination }}", site: site).should eq "_site"
+    run_processor(resource, "{{ site.title }}", site: site).should eq "Foo Site"
+    run_processor(resource, "{{ site.files[0].slug }}", site: site).should eq "foo.md"
   end
 
   it "expose categories" do

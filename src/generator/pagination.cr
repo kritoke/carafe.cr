@@ -38,7 +38,7 @@ class Criss::Generator::Pagination < Criss::Generator
       raise "not implemented"
     end
 
-    #if sort_property = config["sort_property"]?
+    # if sort_property = config["sort_property"]?
     if config["sort"]?
       items.sort!
     end
@@ -57,7 +57,7 @@ class Criss::Generator::Pagination < Criss::Generator
         pages << resource
       else
         clone = Criss::Resource.new(site, resource.slug, resource.content, frontmatter: resource.frontmatter.clone, defaults: resource.defaults)
-        clone.frontmatter.merge!(Frontmatter{"permalink" => permalink })
+        clone.frontmatter.merge!(Frontmatter{"permalink" => permalink})
         clone.paginator = paginator
         pages << clone
         paginator_resources << clone

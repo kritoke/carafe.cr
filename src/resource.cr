@@ -26,7 +26,6 @@ class Criss::Resource
 
   def initialize(site : Site?, @slug : String, @content : String? = nil, @directory : String? = nil,
                  frontmatter : Frontmatter? = Frontmatter.new, @defaults : Frontmatter = Frontmatter.new)
-
     @has_frontmatter = !frontmatter.nil?
     @frontmatter = frontmatter || Frontmatter.new
 
@@ -121,13 +120,13 @@ class Criss::Resource
       end
     end
 
-    #base = @site.url
+    # base = @site.url
     # scheme = self["scheme"]
     # domain = self["domain"]
 
     # @url = if domain && base.host == @site.config["host"] && base.port == @site.config["port"]
     #   base.merge("/" + domain + path).to_s
-    if false #base.relative?
+    if false # base.relative?
       URI.parse(path)
     else
       # base.hostname = domain unless domain.nil?
@@ -238,12 +237,12 @@ class Criss::Resource
 
   def expand_permalink(permalink : String)
     permalink = case permalink.lchop('/')
-      when "date"    then "/:categories/:year/:month/:day/:title:output_ext"
-      when "pretty"  then "/:categories/:year/:month/:day/:title/"
-      when "ordinal" then "/:categories/:year/:y_day/:title:output_ext"
-      when "none"    then "/:categories/:title:output_ext"
-      else permalink
-    end
+                when "date"    then "/:categories/:year/:month/:day/:title:output_ext"
+                when "pretty"  then "/:categories/:year/:month/:day/:title/"
+                when "ordinal" then "/:categories/:year/:y_day/:title:output_ext"
+                when "none"    then "/:categories/:title:output_ext"
+                else                permalink
+                end
 
     date, shortname = date_and_shortname_from_slug
     date ||= self.date

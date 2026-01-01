@@ -4,7 +4,7 @@ require "./util/yaml_unmapped"
 require "./util/def_and_equals"
 
 @[Crinja::Attributes]
-class Criss::Config
+class Carafe::Config
   class Collection
     include YAML::Serializable
     include YAML::Serializable::Unmapped
@@ -37,11 +37,11 @@ class Criss::Config
     include YAML::Serializable
     include ::Crinja::Object::Auto
 
-    property scope : Scope = Criss::Config::Scope.new
+    property scope : Scope = Carafe::Config::Scope.new
 
-    property values : Criss::Frontmatter = Criss::Frontmatter.new
+    property values : Carafe::Frontmatter = Carafe::Frontmatter.new
 
-    def initialize(@scope : Scope = Scope.new, @values : Criss::Frontmatter = Criss::Frontmatter.new)
+    def initialize(@scope : Scope = Scope.new, @values : Carafe::Frontmatter = Carafe::Frontmatter.new)
     end
 
     include Util::DefAndEquals
@@ -82,7 +82,7 @@ class Criss::Config
   property includes_dir : String = "_includes"
 
   # TODO: Add support for Array(String)
-  property collections : Hash(String, ::Criss::Config::Collection) = {} of String => ::Criss::Config::Collection
+  property collections : Hash(String, ::Carafe::Config::Collection) = {} of String => ::Carafe::Config::Collection
 
   # Handling Reading
   # property? safe : Bool = false
@@ -130,7 +130,7 @@ class Criss::Config
 
   property? quiet : Bool = false
   property? verbose : Bool = false
-  property defaults : Array(Criss::Config::Defaults) = [] of Criss::Config::Defaults
+  property defaults : Array(Carafe::Config::Defaults) = [] of Carafe::Config::Defaults
 
   include Util::DefAndEquals
 
@@ -164,7 +164,7 @@ class Criss::Config
     end
   end
 
-  def self.load(site_dir : String, alternatives : Enumerable = {"_config.yml", ".criss/config.yml"})
+  def self.load(site_dir : String, alternatives : Enumerable = {"_config.yml", ".Carafe/config.yml"})
     alternatives.each do |filename|
       full_path = File.join(site_dir, filename)
       if File.exists?(full_path)
@@ -174,7 +174,7 @@ class Criss::Config
       end
     end
 
-    raise "Could not find CRISS config file in #{site_dir} (looking for #{alternatives.join(", ")})"
+    raise "Could not find Carafe config file in #{site_dir} (looking for #{alternatives.join(", ")})"
   end
 
   def crinja_attribute(value : Crinja::Value) : Crinja::Value

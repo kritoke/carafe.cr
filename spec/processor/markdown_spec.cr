@@ -1,10 +1,10 @@
 require "spec"
 require "../../src/processor/markdown"
 
-describe Criss::Processor::Markdown do
+describe Carafe::Processor::Markdown do
   it "renders markdown" do
-    processor = Criss::Processor::Markdown.new
-    resource = Criss::Resource.new(nil, "foo.md")
+    processor = Carafe::Processor::Markdown.new
+    resource = Carafe::Resource.new(nil, "foo.md")
 
     String.build do |io|
       processor.process(resource, IO::Memory.new("Foo *bar*"), io)

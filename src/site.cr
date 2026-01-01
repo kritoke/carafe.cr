@@ -5,7 +5,7 @@ require "./collection"
 require "yaml"
 
 @[::Crinja::Attributes(expose: [files, collections])]
-class Criss::Site
+class Carafe::Site
   include ::Crinja::Object::Auto
 
   getter config : Config

@@ -1,6 +1,6 @@
 require "./processor"
 
-struct Criss::Pipeline
+struct Carafe::Pipeline
   getter processors : Array(Processor)
 
   def initialize(@processors : Array(Processor))

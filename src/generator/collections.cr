@@ -1,6 +1,6 @@
 require "./files"
 
-class Criss::Generator::Collections < Criss::Generator::Files
+class Carafe::Generator::Collections < Carafe::Generator::Files
   def self.new(site : Site)
     collections_dir = File.join(site.config.source, site.config.collections_dir)
     paths = [] of String
@@ -48,7 +48,7 @@ class Criss::Generator::Collections < Criss::Generator::Files
       real_path = File.expand_path(collection_path, site.site_dir)
       Files.load_files(File.join(real_path, "*"), real_path) do |slug, content, frontmatter|
         defaults = site.defaults_for(slug, collection_name)
-        resource = Criss::Resource.new(site, slug, content, collection_path, frontmatter, defaults: defaults)
+        resource = Carafe::Resource.new(site, slug, content, collection_path, frontmatter, defaults: defaults)
         resource.collection = collection
         collection.resources << resource
       end

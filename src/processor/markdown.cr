@@ -1,7 +1,7 @@
 require "markd"
 require "../processor"
 
-class Criss::Processor::Markdown < Criss::Processor
+class Carafe::Processor::Markdown < Carafe::Processor
   transforms "markdown": "html"
 
   file_extensions "markdown": {".md", ".markdown"}

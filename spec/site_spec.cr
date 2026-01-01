@@ -1,27 +1,27 @@
 require "spec"
 require "../src/site"
 
-describe Criss::Site do
+describe Carafe::Site do
   it ".new" do
-    config = Criss::Config.new
-    site = Criss::Site.new(config)
+    config = Carafe::Config.new
+    site = Carafe::Site.new(config)
     site.config.should eq config
   end
 
   it "#collections" do
-    config = Criss::Config.new
-    site = Criss::Site.new(config)
+    config = Carafe::Config.new
+    site = Carafe::Site.new(config)
     site.collections.keys.should eq ["posts"]
     site.collections["posts"].defaults.should eq config.collections["posts"]
   end
 
   it "#site_dir" do
-    site = Criss::Site.new("spec/fixtures/simple-site")
+    site = Carafe::Site.new("spec/fixtures/simple-site")
     site.site_dir.should eq File.join(Dir.current, "spec/fixtures/simple-site")
   end
 
   it "#run_generators" do
-    site = Criss::Site.new("spec/fixtures/simple-site")
+    site = Carafe::Site.new("spec/fixtures/simple-site")
 
     site.run_generators
 
@@ -33,8 +33,8 @@ describe Criss::Site do
   end
 
   it "#run_processor" do
-    site = Criss::Site.new
-    resource = Criss::Resource.new(site, "sample.md", "Foo **{{ page.name }}**")
+    site = Carafe::Site.new
+    resource = Carafe::Resource.new(site, "sample.md", "Foo **{{ page.name }}**")
     string = String.build do |io|
       site.run_processor(io, resource)
     end

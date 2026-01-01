@@ -1,7 +1,7 @@
 require "./site"
 require "file_utils"
 
-class Criss::Builder
+class Carafe::Builder
   def initialize(@output_dir : String)
   end
 

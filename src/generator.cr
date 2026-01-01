@@ -1,7 +1,7 @@
 require "./site"
 require "./priority"
 
-abstract class Criss::Generator
+abstract class Carafe::Generator
   getter site : Site
 
   def initialize(@site : Site)

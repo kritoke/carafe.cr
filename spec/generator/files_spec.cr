@@ -2,22 +2,22 @@ require "spec"
 require "../../src/generator"
 
 private def generate_files
-  site = Criss::Site.new("spec/fixtures/simple-site")
-  generator = Criss::Generator::Files.new(site)
+  site = Carafe::Site.new("spec/fixtures/simple-site")
+  generator = Carafe::Generator::Files.new(site)
   generator.generate
 
   site.files
 end
 
-describe Criss::Generator::Files do
+describe Carafe::Generator::Files do
   it "reads files" do
     generate_files.map(&.slug).should eq ["css/site.css", "folder/file.html", "index.md", "no-frontmatter.markdown", "simple.scss"]
   end
 
   it "reads files with includes" do
-    site = Criss::Site.new("spec/fixtures/simple-site")
+    site = Carafe::Site.new("spec/fixtures/simple-site")
     site.config.include = ["_include.html"]
-    generator = Criss::Generator::Files.new(site)
+    generator = Carafe::Generator::Files.new(site)
     generator.generate
 
     site.files.map(&.slug).should eq ["css/site.css", "folder/file.html", "index.md", "no-frontmatter.markdown", "simple.scss", "_include.html"]
@@ -41,12 +41,12 @@ describe Criss::Generator::Files do
   end
 
   it "applies defaults" do
-    config = Criss::Config.new
+    config = Carafe::Config.new
     config.site_dir = "spec/fixtures/simple-site"
-    config.defaults = [Criss::Config::Defaults.new(Criss::Config::Scope.new(type: "pages"), Criss::Frontmatter{"defaults_applied" => true})]
+    config.defaults = [Carafe::Config::Defaults.new(Carafe::Config::Scope.new(type: "pages"), Carafe::Frontmatter{"defaults_applied" => true})]
 
-    site = Criss::Site.new(config)
-    generator = Criss::Generator::Files.new(site)
+    site = Carafe::Site.new(config)
+    generator = Carafe::Generator::Files.new(site)
     generator.generate
 
     site.files[0]["defaults_applied"].should be_true

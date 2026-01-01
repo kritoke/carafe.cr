@@ -1,6 +1,6 @@
 require "http/server"
 
-class Criss::Server
+class Carafe::Server
   getter site : Site
 
   def self.new(site)
@@ -58,7 +58,7 @@ class Criss::Server
 
   # getter! server : HTTP::Server
   # getter site : Site
-  # getter! handler : CrissHandler
+  # getter! handler : CarafeHandler
 
   # getattr host, port
 
@@ -73,11 +73,11 @@ class Criss::Server
   #   begin
   #     server.bind
   #   rescue e : Errno
-  #     STDERR.puts "Criss server could not bind to #{url}"
+  #     STDERR.puts "Carafe server could not bind to #{url}"
   #     raise e
   #   end
 
-  #   puts "Criss server is listening on #{url}"
+  #   puts "Carafe server is listening on #{url}"
 
   #   server.listen
   # end
@@ -85,7 +85,7 @@ class Criss::Server
   # def setup
   #   return unless @server.nil?
 
-  #   @handler = CrissHandler.new
+  #   @handler = CarafeHandler.new
 
   #   handlers = [
   #     HTTP::ErrorHandler.new,

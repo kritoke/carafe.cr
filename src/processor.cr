@@ -1,7 +1,7 @@
 require "./site"
 require "./priority"
 
-abstract class Criss::Processor
+abstract class Carafe::Processor
   record Transformation, processor : Processor, from : String, to : String do
     include Comparable(Transformation)
 

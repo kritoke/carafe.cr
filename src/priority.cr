@@ -1,4 +1,4 @@
-enum Criss::Priority
+enum Carafe::Priority
   HIGH
   NORMAL
   LOW

@@ -1,7 +1,7 @@
 require "./spec_helper"
 require "../src/server"
 
-private def send_request(handler : Criss::Server::Handler, url : String) : HTTP::Client::Response
+private def send_request(handler : Carafe::Server::Handler, url : String) : HTTP::Client::Response
   request = HTTP::Request.new("GET", url)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
@@ -14,11 +14,11 @@ private def send_request(handler : Criss::Server::Handler, url : String) : HTTP:
   HTTP::Client::Response.from_io(io)
 end
 
-describe Criss::Server do
+describe Carafe::Server do
   it do
     site = load_site("simple-site")
 
-    handler = Criss::Server::Handler.new(site)
+    handler = Carafe::Server::Handler.new(site)
 
     response = send_request(handler, "/2017/08/07/markdown/")
     response.success?.should be_true

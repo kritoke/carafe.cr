@@ -1,31 +1,31 @@
 require "spec"
 require "../../src/processor/crinja"
 
-private def run_processor(resource, template, site = Criss::Site.new)
-  processor = Criss::Processor::Crinja.new(site)
+private def run_processor(resource, template, site = Carafe::Site.new)
+  processor = Carafe::Processor::Crinja.new(site)
 
   String.build do |io|
     processor.process(resource, IO::Memory.new(template), io)
   end
 end
 
-describe Criss::Processor::Crinja do
+describe Carafe::Processor::Crinja do
   it "renders crinja template" do
-    resource = Criss::Resource.new(nil, "foo.md")
+    resource = Carafe::Resource.new(nil, "foo.md")
 
     run_processor(resource, "Foo {{ page.name }}").should eq "Foo foo.md"
   end
 
   it "exposes frontmatter to template" do
-    resource = Criss::Resource.new(nil, "foo.md", frontmatter: Criss::Frontmatter{"foo" => "Bar"})
+    resource = Carafe::Resource.new(nil, "foo.md", frontmatter: Carafe::Frontmatter{"foo" => "Bar"})
 
     run_processor(resource, "Foo {{ page.foo }}").should eq "Foo Bar"
   end
 
   it "exposes site to template" do
-    site = Criss::Site.new
+    site = Carafe::Site.new
     site.config["title"] = "Foo Site"
-    resource = Criss::Resource.new(nil, "foo.md")
+    resource = Carafe::Resource.new(nil, "foo.md")
     site.files << resource
 
     run_processor(resource, "{{ site.destination }}", site: site).should eq "_site"
@@ -34,14 +34,14 @@ describe Criss::Processor::Crinja do
   end
 
   it "expose categories" do
-    run_processor(Criss::Resource.new(nil, "foo.md", frontmatter: Criss::Frontmatter{"categories" => "Foo"}), "{{ page.categories }}").should eq "['Foo']"
-    run_processor(Criss::Resource.new(nil, "foo.md", frontmatter: Criss::Frontmatter{"categories" => [YAML::Any.new("Foo")]}), "{{ page.categories }}").should eq "['Foo']"
-    run_processor(Criss::Resource.new(nil, "foo.md", frontmatter: Criss::Frontmatter{"category" => "Foo"}), "{{ page.categories }}").should eq "['Foo']"
-    run_processor(Criss::Resource.new(nil, "foo.md"), "{{ page.categories }}").should eq "[]"
+    run_processor(Carafe::Resource.new(nil, "foo.md", frontmatter: Carafe::Frontmatter{"categories" => "Foo"}), "{{ page.categories }}").should eq "['Foo']"
+    run_processor(Carafe::Resource.new(nil, "foo.md", frontmatter: Carafe::Frontmatter{"categories" => [YAML::Any.new("Foo")]}), "{{ page.categories }}").should eq "['Foo']"
+    run_processor(Carafe::Resource.new(nil, "foo.md", frontmatter: Carafe::Frontmatter{"category" => "Foo"}), "{{ page.categories }}").should eq "['Foo']"
+    run_processor(Carafe::Resource.new(nil, "foo.md"), "{{ page.categories }}").should eq "[]"
   end
 
   it "loads from includes dir" do
-    processor = Criss::Processor::Crinja.new(site_dir: "spec/fixtures/simple-site")
-    processor.process(Criss::Resource.new(nil, "foo.md"), "{% include foo.html %}").should eq "FOO included"
+    processor = Carafe::Processor::Crinja.new(site_dir: "spec/fixtures/simple-site")
+    processor.process(Carafe::Resource.new(nil, "foo.md"), "{% include foo.html %}").should eq "FOO included"
   end
 end

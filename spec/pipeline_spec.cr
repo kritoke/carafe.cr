@@ -1,62 +1,62 @@
 require "spec"
 require "../src/pipeline"
 
-describe Criss::Pipeline do
+describe Carafe::Pipeline do
   it "#pipe" do
-    site = Criss::Site.new
+    site = Carafe::Site.new
     processors = [
-      Criss::Processor::Crinja.new(site),
-      Criss::Processor::Markdown.new(site),
+      Carafe::Processor::Crinja.new(site),
+      Carafe::Processor::Markdown.new(site),
     ]
-    pipeline = Criss::Pipeline.new processors
+    pipeline = Carafe::Pipeline.new processors
 
-    resource = Criss::Resource.new(site, "sample.md", "Foo **{{ page }}**")
+    resource = Carafe::Resource.new(site, "sample.md", "Foo **{{ page }}**")
     pipeline.pipe(resource).should eq "<p>Foo <strong>sample.md</strong></p>\n"
   end
 end
 
-describe Criss::Pipeline::Builder do
+describe Carafe::Pipeline::Builder do
   it "init" do
-    site = Criss::Site.new
-    builder = Criss::Pipeline::Builder.new(site)
+    site = Carafe::Site.new
+    builder = Carafe::Pipeline::Builder.new(site)
   end
 
   it "#create_pipeline" do
-    site = Criss::Site.new
-    builder = Criss::Pipeline::Builder.new(site)
+    site = Carafe::Site.new
+    builder = Carafe::Pipeline::Builder.new(site)
 
     builder.create_pipeline("markdown").processors.map(&.class).should eq [
-      Criss::Processor::Markdown,
-      Criss::Processor::Layout,
+      Carafe::Processor::Markdown,
+      Carafe::Processor::Layout,
     ]
     builder.create_pipeline("jinja.markdown").processors.map(&.class).should eq [
-      Criss::Processor::Crinja,
-      Criss::Processor::Markdown,
-      Criss::Processor::Layout,
+      Carafe::Processor::Crinja,
+      Carafe::Processor::Markdown,
+      Carafe::Processor::Layout,
     ]
     builder.create_pipeline("jinja.html").processors.map(&.class).should eq [
-      Criss::Processor::Crinja,
-      Criss::Processor::Layout,
+      Carafe::Processor::Crinja,
+      Carafe::Processor::Layout,
     ]
   end
 
   it "#format_for" do
-    site = Criss::Site.new
-    builder = Criss::Pipeline::Builder.new(site)
+    site = Carafe::Site.new
+    builder = Carafe::Pipeline::Builder.new(site)
 
-    resource = Criss::Resource.new(site, "sample.md", "Foo **{{ page }}**")
+    resource = Carafe::Resource.new(site, "sample.md", "Foo **{{ page }}**")
     builder.format_for(resource).should eq "crinja.markdown"
   end
 
   it "#format_for_filename" do
-    site = Criss::Site.new
-    builder = Criss::Pipeline::Builder.new(site)
+    site = Carafe::Site.new
+    builder = Carafe::Pipeline::Builder.new(site)
     builder.format_for_filename("foo.md").should eq "markdown"
   end
 
   it "#output_ext" do
-    site = Criss::Site.new
-    builder = Criss::Pipeline::Builder.new(site)
+    site = Carafe::Site.new
+    builder = Carafe::Pipeline::Builder.new(site)
 
     builder.output_ext(".css").should eq nil
     builder.output_ext(".html").should eq nil
@@ -66,10 +66,10 @@ describe Criss::Pipeline::Builder do
   end
 
   it "#output_ext_for" do
-    site = Criss::Site.new
-    builder = Criss::Pipeline::Builder.new(site)
+    site = Carafe::Site.new
+    builder = Carafe::Pipeline::Builder.new(site)
 
-    builder.output_ext_for(Criss::Resource.new(site, "bar.css", frontmatter: Criss::Frontmatter.new)).should eq ".css"
-    builder.output_ext_for(Criss::Resource.new(site, "bar.html", frontmatter: Criss::Frontmatter.new)).should eq ".html"
+    builder.output_ext_for(Carafe::Resource.new(site, "bar.css", frontmatter: Carafe::Frontmatter.new)).should eq ".css"
+    builder.output_ext_for(Carafe::Resource.new(site, "bar.html", frontmatter: Carafe::Frontmatter.new)).should eq ".html"
   end
 end

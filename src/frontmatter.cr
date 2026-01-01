@@ -1,4 +1,4 @@
-struct Criss::Frontmatter
+struct Carafe::Frontmatter
   def initialize(@data = {} of YAML::Any => YAML::Any)
   end
 

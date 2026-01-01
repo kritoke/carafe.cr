@@ -1,20 +1,20 @@
-# criss
+# Carafe.cr
 
-The *CRystal Instantaneous Static Site* is a static site generator and server modeled after Jekyll.
+The *Carafe.cr* is a static site generator and server modeled after Jekyll.
+
+This project is a fork of the original [criss](https://github.com/straight-shoota/criss) created by Johannes Müller.
 
 **ALPHA STATUS** - this is probably not yet useful for production
 
 ## Installation
 
-Criss relies on sass.cr, and some dependencies might be required on your system. Check out the [installation instructions for `sass.cr`](https://github.com/straight-shoota/sass.cr#installation) for more details.
-
 Download this repository and run `shards install && shards build`
 
 ## Usage
 
-Run the executable `criss` inside a website folder. It now serves the content from this folder directly.
+Run the executable `carafe` inside a website folder. It now serves the content from this folder directly.
 
-Run `criss help` for command line options.
+Run `carafe help` for command line options.
 
 ## Development
 
@@ -22,7 +22,7 @@ TODO: Write development instructions here
 
 ## Contributing
 
-1. Fork it (<https://github.com/straight-shoota/criss/fork>)
+1. Fork it (<https://github.com/kritoke/carafe.cr/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
@@ -30,4 +30,8 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [straight-shoota](https://github.com/straight-shoota) Johannes Müller - creator, maintainer
+- [kritoke](https://github.com/kritoke) - current maintainer
+
+### Credits
+
+- [straight-shoota](https://github.com/straight-shoota) Johannes Müller - original creator

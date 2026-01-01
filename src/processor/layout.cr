@@ -3,7 +3,7 @@ require "crinja/liquid"
 require "../processor"
 require "../crinja_lib"
 
-class Criss::Processor::Layout < Criss::Processor
+class Carafe::Processor::Layout < Carafe::Processor
   alias Template = ::Crinja::Template
 
   transforms "*": "output"

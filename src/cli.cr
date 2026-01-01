@@ -4,7 +4,7 @@ require "./server"
 require "option_parser"
 require "log"
 
-class Criss::CLI
+class Carafe::CLI
   getter logger : Log
   getter output : IO
   getter error : IO
@@ -43,7 +43,7 @@ class Criss::CLI
 
   def display_help_and_exit
     @output.puts <<-USAGE
-      criss [command] [options]
+      carafe [command] [options]
 
       Commands:
           build                build site
@@ -89,7 +89,7 @@ class Criss::CLI
   end
 
   def run_list
-    site = Criss::Site.new(source_path)
+    site = Carafe::Site.new(source_path)
 
     site.run_generators
 
@@ -124,7 +124,7 @@ class Criss::CLI
       site.run_generators
     end
 
-    builder = Criss::Builder.new(site.config.destination)
+    builder = Carafe::Builder.new(site.config.destination)
 
     profile "Running builder" do
       builder.build(site)
@@ -157,14 +157,14 @@ class Criss::CLI
       site.run_generators
     end
 
-    server = Criss::Server.new(site)
+    server = Carafe::Server.new(site)
 
     server.start
   end
 
   def create_site
     site = profile "Reading config" do
-      Criss::Site.new(source_path)
+      Carafe::Site.new(source_path)
     end
 
     puts "         Source: #{site.config.source}"
@@ -174,7 +174,7 @@ class Criss::CLI
   end
 
   private def display_version_and_exit
-    # puts Criss::VERSION
+    # puts Carafe::VERSION
     exit
   end
 

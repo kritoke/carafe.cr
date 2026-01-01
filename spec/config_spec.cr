@@ -1,27 +1,27 @@
 require "spec"
 require "../src/config.cr"
 
-describe Criss::Config do
+describe Carafe::Config do
   # File.open("spec/fixtures/_config.default.yml", "w") do |io|
-  #   Criss::Config.new.to_yaml(io)
+  #   Carafe::Config.new.to_yaml(io)
   # end
 
   it ".from_yaml" do
     File.open("spec/fixtures/_config.default.yml", "r") do |io|
-      Criss::Config.from_yaml(io)
-    end.should eq Criss::Config.new
+      Carafe::Config.from_yaml(io)
+    end.should eq Carafe::Config.new
   end
 
   it ".load_file" do
-    Criss::Config.load_file("spec/fixtures/_config.default.yml").should eq Criss::Config.new
+    Carafe::Config.load_file("spec/fixtures/_config.default.yml").should eq Carafe::Config.new
   end
 
   it ".load" do
-    Criss::Config.load("spec/fixtures/simple-site/").should eq Criss::Config.new(site_dir: "spec/fixtures/simple-site/")
+    Carafe::Config.load("spec/fixtures/simple-site/").should eq Carafe::Config.new(site_dir: "spec/fixtures/simple-site/")
   end
 
   it "loads complex file" do
-    config = Criss::Config.load_file("spec/fixtures/_config.complex.yml")
+    config = Carafe::Config.load_file("spec/fixtures/_config.complex.yml")
     config.defaults[0].scope.path.should eq "posts/"
     config.defaults[0].values["layout"].should eq "post"
   end

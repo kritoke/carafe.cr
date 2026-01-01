@@ -1,4 +1,4 @@
-class Criss::Generator::Pagination < Criss::Generator
+class Carafe::Generator::Pagination < Carafe::Generator
   getter priority : Priority = Priority::LOW
 
   def initialize(site : Site)
@@ -56,7 +56,7 @@ class Criss::Generator::Pagination < Criss::Generator
         resource.paginator = paginator
         pages << resource
       else
-        clone = Criss::Resource.new(site, resource.slug, resource.content, frontmatter: resource.frontmatter.clone, defaults: resource.defaults)
+        clone = Carafe::Resource.new(site, resource.slug, resource.content, frontmatter: resource.frontmatter.clone, defaults: resource.defaults)
         clone.frontmatter.merge!(Frontmatter{"permalink" => permalink})
         clone.paginator = paginator
         pages << clone

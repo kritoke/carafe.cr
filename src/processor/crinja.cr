@@ -3,7 +3,7 @@ require "crinja/liquid"
 require "../processor"
 require "../crinja_lib"
 
-class Criss::Processor::Crinja < Criss::Processor
+class Carafe::Processor::Crinja < Carafe::Processor
   transforms "crinja": "*", "jinja": "*", "liquid": "*"
 
   getter crinja : ::Crinja

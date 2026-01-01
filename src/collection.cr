@@ -1,7 +1,7 @@
 require "./config"
 require "./resource"
 
-class Criss::Collection
+class Carafe::Collection
   getter name : String
   getter defaults : Config::Collection
   getter resources : Array(Resource) = [] of Resource

@@ -1,9 +1,9 @@
 require "file_utils"
 
 {% if flag?(:win32) %}
-  SPEC_TEMPFILE_PATH = File.join(Dir.tempdir, "criss-spec-#{Random.new.hex(4)}").gsub("C:\\", '/').gsub('\\', '/')
+  SPEC_TEMPFILE_PATH = File.join(Dir.tempdir, "carafe-spec-#{Random.new.hex(4)}").gsub("C:\\", '/').gsub('\\', '/')
 {% else %}
-  SPEC_TEMPFILE_PATH = File.join(Dir.tempdir, "criss-spec-#{Random.new.hex(4)}")
+  SPEC_TEMPFILE_PATH = File.join(Dir.tempdir, "carafe-spec-#{Random.new.hex(4)}")
 {% end %}
 
 SPEC_TEMPFILE_CLEANUP = ENV["SPEC_TEMPFILE_CLEANUP"]? != "0"

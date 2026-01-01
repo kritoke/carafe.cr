@@ -1,4 +1,4 @@
-class Criss::Generator::Files < Criss::Generator
+class Carafe::Generator::Files < Carafe::Generator
   getter priority : Priority = Priority::HIGH
 
   def initialize(@site : Site)
@@ -8,7 +8,7 @@ class Criss::Generator::Files < Criss::Generator
     search_path = File.expand_path(site.config.source, site.site_dir)
     Files.load_files(File.join(search_path, "**/*"), search_path, excludes: site.config.exclude, includes: site.config.include) do |slug, content, frontmatter|
       defaults = site.defaults_for(slug, "pages")
-      resource = Criss::Resource.new(site, slug, content, frontmatter: frontmatter, defaults: defaults)
+      resource = Carafe::Resource.new(site, slug, content, frontmatter: frontmatter, defaults: defaults)
 
       site.files << resource
     end

@@ -7,7 +7,7 @@ require "./paginator"
 require "./ext/string"
 
 @[::Crinja::Attributes(expose: [slug, directory, content, paginator, categories])]
-class Criss::Resource
+class Carafe::Resource
   include ::Crinja::Object::Auto
   include Comparable(Resource)
 

@@ -1,7 +1,7 @@
 require "./cli"
 
 begin
-  Criss::CLI.run
+  Carafe::CLI.run
 rescue ex : OptionParser::InvalidOption
   STDERR.puts ex.message
   exit 1

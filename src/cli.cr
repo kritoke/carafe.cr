@@ -32,11 +32,11 @@ class Carafe::CLI
       #  server.port = port.to_i
       # end
       opts.on("-e VAR", "--extra-vars=VAR", "Set variables as `key=value`") do |var|
-        key, value = var.split('=')
+        _key, _value = var.split('=')
         # server.config.crinja.context[key] = value
       end
       opts.on("-s DIR", "--source DIR", "Set root dir (default: `#{source_path}`)") do |dir|
-        source_path = dir
+        @source_path = dir
       end
     end
   end

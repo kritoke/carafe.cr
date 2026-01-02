@@ -247,41 +247,31 @@ class Carafe::Resource
     date, shortname = date_and_shortname_from_slug
     date ||= self.date
 
-    permalink.gsub(/\{:(\w+)\}|:(\w+)/) do |string, match|
+    tokens = {
+      "year"        => date.to_s("%Y"),
+      "month"       => date.to_s("%m"),
+      "day"         => date.to_s("%d"),
+      "hour"        => date.to_s("%H"),
+      "minute"      => date.to_s("%M"),
+      "second"      => date.to_s("%S"),
+      "i_day"       => date.to_s("%-d"),
+      "i_month"     => date.to_s("%-m"),
+      "short_month" => date.to_s("%b"),
+      "short_year"  => date.to_s("%y"),
+      "y_day"       => date.to_s("%j"),
+      "title"       => shortname.to_s,
+      "slug"        => shortname.to_s.downcase,
+      "name"        => name.to_s,
+      "basename"    => basename.to_s,
+      "collection"  => collection.try(&.name).to_s,
+      "output_ext"  => output_ext.to_s,
+      "categories"  => categories.map(&.slugify).join("/"),
+      "path"        => (p = File.dirname(@slug); p == "." ? "" : p),
+    }
+
+    permalink.gsub(/\{:(\w+)\}|:(\w+)/) do |_, match|
       variable = match[1]? || match[2]
-      case variable
-      # when "title"         then !has_frontmatter? ? name : data["slug"] || Util.slugify(date_and_basename_without_ext.last, preserve_case: true)
-      when "title"      then shortname.to_s
-      when "slug"       then shortname.to_s.downcase
-      when "name"       then name
-      when "basename"   then basename
-      when "collection" then collection
-      when "output_ext" then output_ext
-        # when "num"           then data["paginator"].index
-
-        # when "digest"        then Digest::MD5.hexdigest(output) rescue ""
-
-      when "year"        then date.to_s("%Y")
-      when "month"       then date.to_s("%m")
-      when "day"         then date.to_s("%d")
-      when "hour"        then date.to_s("%H")
-      when "minute"      then date.to_s("%M")
-      when "second"      then date.to_s("%S")
-      when "i_day"       then date.to_s("%-d")
-      when "i_month"     then date.to_s("%-m")
-      when "short_month" then date.to_s("%b")
-      when "short_year"  then date.to_s("%y")
-      when "y_day"       then date.to_s("%j")
-      when "categories"  then categories.map(&.slugify).join("/")
-      when "path"
-        path = File.dirname(@slug)
-        # if path.start_with?("/")
-        #   path = Util.relative_path(path, File.expand_path(data["base_dir"] || ".", directory))
-        # end
-        path == "." ? "" : path
-      else
-        raise "Unknown permalink variable #{variable.dump}"
-      end
+      tokens.fetch(variable) { raise "Unknown permalink variable #{variable.dump}" }
     end.gsub(%r(/\.?/+), '/')
   end
 end

@@ -22,7 +22,7 @@ class Carafe::Config
       if result.undefined?
         key = value.to_string
         if unmapped_val = @yaml_unmapped[key]?
-          return Crinja::Value.new unmapped_val
+          return Config.yaml_to_crinja(unmapped_val)
         end
       end
 
@@ -128,6 +128,7 @@ class Carafe::Config
   property paginate_path : String = "/page:num"
   property timezone : String? = nil # use the local timezone
 
+  property sass_bin : String? = nil
   property? quiet : Bool = false
   property? verbose : Bool = false
   property defaults : Array(Carafe::Config::Defaults) = [] of Carafe::Config::Defaults
@@ -177,13 +178,30 @@ class Carafe::Config
     raise "Could not find Carafe config file in #{site_dir} (looking for #{alternatives.join(", ")})"
   end
 
+  def self.yaml_to_crinja(any : YAML::Any) : Crinja::Value
+    case raw = any.raw
+    when Nil, Bool, Int64, Float64, String
+      Crinja::Value.new(raw)
+    when Array
+      Crinja::Value.new(raw.map { |v| yaml_to_crinja(v) })
+    when Hash
+      h = {} of String => Crinja::Value
+      raw.each do |k, v|
+        h[k.to_s] = yaml_to_crinja(v)
+      end
+      Crinja::Value.new(h)
+    else
+      Crinja::Value.new(raw.to_s)
+    end
+  end
+
   def crinja_attribute(value : Crinja::Value) : Crinja::Value
     result = super
 
     if result.undefined?
       key = value.to_string
       if unmapped_val = @yaml_unmapped[key]?
-        return Crinja::Value.new unmapped_val
+        return Config.yaml_to_crinja(unmapped_val)
       end
     end
 

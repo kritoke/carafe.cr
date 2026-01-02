@@ -12,6 +12,10 @@ shards:
     git: https://github.com/icyleaf/markd.git
     version: 0.5.0
 
+  sassd:
+    git: https://github.com/kritoke/sassd.cr.git
+    version: 0.1.0+git.commit.3e1fd60d73713658deedf9608a7ad5507ba3bec9
+
   serve:
     git: https://github.com/superpaintman/serve.git
     version: 0.1.1

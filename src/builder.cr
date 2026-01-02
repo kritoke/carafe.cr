@@ -30,7 +30,7 @@ class Carafe::Builder
         begin
           site.run_processor(file, resource)
         rescue ex
-          raise Exception.new("Error running processor for #{resource.slug}", cause: ex)
+          raise Exception.new("Error running processor for #{resource.slug}: #{ex.message}", cause: ex)
         end
       end
     end

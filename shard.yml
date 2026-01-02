@@ -20,6 +20,8 @@ dependencies:
     github: icyleaf/markd
   serve:
     github: superpaintman/serve
+  sassd:
+    github: kritoke/sassd.cr
 
 development_dependencies:
   ameba:

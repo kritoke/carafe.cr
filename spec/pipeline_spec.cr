@@ -34,6 +34,10 @@ describe Carafe::Pipeline::Builder do
       Carafe::Processor::Markdown,
       Carafe::Processor::Layout,
     ]
+    builder.create_pipeline("sass").processors.map(&.class).should eq [
+      Carafe::Processor::Sass,
+      Carafe::Processor::Layout,
+    ]
     builder.create_pipeline("jinja.html").processors.map(&.class).should eq [
       Carafe::Processor::Crinja,
       Carafe::Processor::Layout,
@@ -58,6 +62,8 @@ describe Carafe::Pipeline::Builder do
     site = Carafe::Site.new
     builder = Carafe::Pipeline::Builder.new(site)
 
+    builder.output_ext(".scss").should eq ".css"
+    builder.output_ext(".sass").should eq ".css"
     builder.output_ext(".css").should eq nil
     builder.output_ext(".html").should eq nil
     builder.output_ext(".md").should eq ".html"
@@ -68,6 +74,12 @@ describe Carafe::Pipeline::Builder do
   it "#output_ext_for" do
     site = Carafe::Site.new
     builder = Carafe::Pipeline::Builder.new(site)
+
+    builder.output_ext_for(Carafe::Resource.new(site, "bar.sass", frontmatter: Carafe::Frontmatter.new)).should eq ".css"
+    builder.output_ext_for(Carafe::Resource.new(site, "bar.sass", frontmatter: nil)).should eq ".sass"
+
+    builder.output_ext_for(Carafe::Resource.new(site, "bar.scss", frontmatter: Carafe::Frontmatter.new)).should eq ".css"
+    builder.output_ext_for(Carafe::Resource.new(site, "bar.scss", frontmatter: nil)).should eq ".scss"
 
     builder.output_ext_for(Carafe::Resource.new(site, "bar.css", frontmatter: Carafe::Frontmatter.new)).should eq ".css"
     builder.output_ext_for(Carafe::Resource.new(site, "bar.html", frontmatter: Carafe::Frontmatter.new)).should eq ".html"

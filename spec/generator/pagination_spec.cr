@@ -17,7 +17,7 @@ describe Carafe::Generator::Pagination do
     generator = Carafe::Generator::Pagination.new(site)
     generator.generate
 
-    index.paginator.not_nil!.items.map(&.slug).should eq ["baz.md", "bar.md"]
+    index.paginator.as(Carafe::Paginator).items.map(&.slug).should eq ["baz.md", "bar.md"]
   end
 
   it "sorts" do
@@ -36,7 +36,7 @@ describe Carafe::Generator::Pagination do
     generator = Carafe::Generator::Pagination.new(site)
     generator.generate
 
-    index.paginator.not_nil!.items.map(&.slug).should eq ["bar.md", "baz.md"]
+    index.paginator.as(Carafe::Paginator).items.map(&.slug).should eq ["bar.md", "baz.md"]
   end
 
   it "adds pages" do
@@ -56,6 +56,6 @@ describe Carafe::Generator::Pagination do
     generator = Carafe::Generator::Pagination.new(site)
     generator.generate
 
-    index.paginator.not_nil!.items.map(&.slug).should eq ["baz.md", "bar.md"]
+    index.paginator.as(Carafe::Paginator).items.map(&.slug).should eq ["baz.md", "bar.md"]
   end
 end

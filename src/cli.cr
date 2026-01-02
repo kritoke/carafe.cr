@@ -146,11 +146,11 @@ class Carafe::CLI
 
     site = create_site
 
-    if p = port
-      site.config.port = p
+    if port_val = port
+      site.config.port = port_val
     end
-    if h = host
-      site.config.host = h
+    if host_val = host
+      site.config.host = host_val
     end
 
     profile "Running generators" do

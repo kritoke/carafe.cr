@@ -37,7 +37,7 @@ describe Carafe::Generator::Files do
   end
 
   it "recognizes no frontmatter" do
-    generate_files.find(&.slug.==("no-frontmatter.markdown")).not_nil!.has_frontmatter?.should be_false
+    generate_files.find! { |file| file.slug == "no-frontmatter.markdown" }.has_frontmatter?.should be_false
   end
 
   it "applies defaults" do

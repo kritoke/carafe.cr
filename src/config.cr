@@ -183,13 +183,13 @@ class Carafe::Config
     when Nil, Bool, Int64, Float64, String
       Crinja::Value.new(raw)
     when Array
-      Crinja::Value.new(raw.map { |v| yaml_to_crinja(v) })
+      Crinja::Value.new(raw.map { |val| yaml_to_crinja(val) })
     when Hash
-      h = {} of String => Crinja::Value
-      raw.each do |k, v|
-        h[k.to_s] = yaml_to_crinja(v)
+      hash_val = {} of String => Crinja::Value
+      raw.each do |key, val|
+        hash_val[key.to_s] = yaml_to_crinja(val)
       end
-      Crinja::Value.new(h)
+      Crinja::Value.new(hash_val)
     else
       Crinja::Value.new(raw.to_s)
     end

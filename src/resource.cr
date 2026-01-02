@@ -124,16 +124,7 @@ class Carafe::Resource
     # scheme = self["scheme"]
     # domain = self["domain"]
 
-    # @url = if domain && base.host == @site.config["host"] && base.port == @site.config["port"]
-    #   base.merge("/" + domain + path).to_s
-    if false # base.relative?
-      URI.parse(path)
-    else
-      # base.hostname = domain unless domain.nil?
-      # base.scheme   = scheme unless scheme.nil?
-      # base.merge(path)
-      URI.parse(path)
-    end
+    URI.parse(path)
   end
 
   @[Crinja::Attribute]
@@ -266,7 +257,7 @@ class Carafe::Resource
       "collection"  => collection.try(&.name).to_s,
       "output_ext"  => output_ext.to_s,
       "categories"  => categories.map(&.slugify).join("/"),
-      "path"        => (p = File.dirname(@slug); p == "." ? "" : p),
+      "path"        => (path_dir = File.dirname(@slug); path_dir == "." ? "" : path_dir),
     }
 
     permalink.gsub(/\{:(\w+)\}|:(\w+)/) do |_, match|

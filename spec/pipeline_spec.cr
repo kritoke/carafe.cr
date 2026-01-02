@@ -18,7 +18,7 @@ end
 describe Carafe::Pipeline::Builder do
   it "init" do
     site = Carafe::Site.new
-    builder = Carafe::Pipeline::Builder.new(site)
+    Carafe::Pipeline::Builder.new(site)
   end
 
   it "#create_pipeline" do

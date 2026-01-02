@@ -6,7 +6,7 @@ require "./frontmatter"
 require "./paginator"
 require "./ext/string"
 
-@[::Crinja::Attributes(expose: [slug, directory, content, paginator, categories])]
+@[::Crinja::Attributes(expose: [:slug, :directory, :content, :paginator, :categories, :title, :date, :permalink, :url])]
 class Carafe::Resource
   include ::Crinja::Object::Auto
   include Comparable(Resource)
@@ -54,24 +54,18 @@ class Carafe::Resource
   end
 
   @[Crinja::Attribute]
-  def name : String?
-    if slug = @slug
-      File.basename(slug)
-    end
+  def name : String
+    File.basename(@slug)
   end
 
   @[Crinja::Attribute]
-  def basename : String?
-    if slug = @slug
-      File.basename(slug, File.extname(slug))
-    end
+  def basename : String
+    File.basename(@slug, File.extname(@slug))
   end
 
   @[Crinja::Attribute]
-  def extname : String?
-    if slug = @slug
-      File.extname(slug)
-    end
+  def extname : String
+    File.extname(@slug)
   end
 
   @[Crinja::Attribute]
@@ -101,12 +95,10 @@ class Carafe::Resource
     else
       path = String.build do |io|
         io << '/'
-        if slug = resource.slug
-          dirname = File.dirname(slug)
-          if dirname != "."
-            io << dirname
-            io << '/'
-          end
+        dirname = File.dirname(resource.slug)
+        if dirname != "."
+          io << dirname
+          io << '/'
         end
 
         basename = resource.basename
@@ -137,11 +129,7 @@ class Carafe::Resource
       return permalink
     end
 
-    if slug = self.slug
-      dir = File.expand_path(File.dirname(slug), "/")
-    else
-      dir = "/"
-    end
+    dir = File.expand_path(File.dirname(@slug), "/")
 
     File.expand_path("#{basename}#{output_ext}", dir)
   end
@@ -149,7 +137,7 @@ class Carafe::Resource
   def crinja_attribute(value : Crinja::Value) : Crinja::Value
     case value.to_string
     when "url"
-      return Crinja::Value.new(url.to_s)
+      return Crinja::Value.new(url.try(&.to_s) || "")
     when "date"
       return Crinja::Value.new(date)
     end
@@ -158,8 +146,8 @@ class Carafe::Resource
 
     if result.undefined?
       key = value.to_string
-      if frontmatter_val = @frontmatter[key]?
-        return Crinja::Value.new frontmatter_val
+      if val = self[key]?
+        return Config.yaml_to_crinja(val)
       end
     end
 
@@ -200,10 +188,8 @@ class Carafe::Resource
   end
 
   def <=>(other : Resource)
-    if (date = self.date) && (other_date = other.date)
-      ret = other_date <=> date
-      return ret unless ret == 0
-    end
+    ret = other.date <=> date
+    return ret unless ret == 0
 
     slug <=> other.slug
   end
@@ -263,6 +249,6 @@ class Carafe::Resource
     permalink.gsub(/\{:(\w+)\}|:(\w+)/) do |_, match|
       variable = match[1]? || match[2]
       tokens.fetch(variable) { raise "Unknown permalink variable #{variable.dump}" }
-    end.gsub(%r(/\.?/+), '/')
+    end.gsub(%r{/\.?/+}, '/')
   end
 end

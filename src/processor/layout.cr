@@ -40,25 +40,23 @@ class Carafe::Processor::Layout < Carafe::Processor
 
       variables = {
         "content" => ::Crinja::SafeString.new(content),
-        "layout"  => ::Crinja.variables(frontmatter),
-        "post"    => resource,
-        "page"    => resource,
-        "site"    => @site,
+        "layout"  => to_native(frontmatter).as_h,
+        "post"    => to_native(resource.frontmatter).as_h,
+        "page"    => to_native(resource.frontmatter).as_h,
+        "site"    => {"config" => to_native(@site.config)},
       }
 
-      layout_name = frontmatter["layout"]?
+      layout_name = frontmatter["layout"]?.try(&.as_s?)
 
-      if layout_name && layout_name != "none"
-        content = layout_template.render(variables)
-      else
-        layout_template.render(output, variables)
+      content = layout_template.render(variables)
 
-        # Add a trailing newline
-        output.puts
+      if !layout_name || layout_name == "none"
         break
       end
     end
 
+    output << content
+    output << "\n"
     true
   end
 
@@ -76,5 +74,38 @@ class Carafe::Processor::Layout < Carafe::Processor
 
       return template, frontmatter
     end
+  end
+
+  private def to_native(value : Frontmatter) : ::Crinja::Value
+    native = {} of String => ::Crinja::Value
+    value.each do |k, v|
+      native[k] = to_native(v)
+    end
+    ::Crinja::Value.new(native)
+  end
+
+  private def to_native(value : ::YAML::Any) : ::Crinja::Value
+    to_native(value.raw)
+  end
+
+  private def to_native(value : Hash) : ::Crinja::Value
+    native = {} of String => ::Crinja::Value
+    value.each do |k, v|
+      k_str = k.is_a?(::YAML::Any) ? (k.as_s? || k.to_s) : k.to_s
+      native[k_str] = to_native(v)
+    end
+    ::Crinja::Value.new(native)
+  end
+
+  private def to_native(value : Array) : ::Crinja::Value
+    native = [] of ::Crinja::Value
+    value.each do |v|
+      native << to_native(v)
+    end
+    ::Crinja::Value.new(native)
+  end
+
+  private def to_native(value) : ::Crinja::Value
+    ::Crinja::Value.new(value)
   end
 end

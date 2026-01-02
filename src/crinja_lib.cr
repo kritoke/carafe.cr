@@ -3,7 +3,7 @@ require "html"
 Crinja.filter(:date_to_string) do
   value = target.raw
   if value.is_a?(Time)
-    value.to_s "%d %b %Y"
+    value.to_s "%-d %b %Y"
   else
     value
   end
@@ -42,11 +42,11 @@ Crinja.filter(:normalize_whitespace) do
 end
 
 Crinja.filter(:strip_index) do
-  target.as_s.sub(%r(/index\.html?$), "/")
+  target.as_s.sub(%r{/?index\.html?$}, "/")
 end
 
 Crinja.filter(:xml_escape) do
-  Crinja::SafeString.new(HTML.escape(target.as_s.to_s))
+  Crinja::SafeString.new(HTML.escape(target.as_s))
 end
 
 Crinja.filter(:date_to_xmlschema) do

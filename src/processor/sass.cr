@@ -12,7 +12,7 @@ class Carafe::Processor::Sass < Carafe::Processor
     # Default to the sass binary located within the carafe project directory.
     # Using {{__DIR__}} ensures we find the binary relative to the source code
     # even when carafe is executed from a different working directory.
-    project_bin = File.expand_path("../../bin/sass", {{__DIR__}})
+    project_bin = File.expand_path("../../bin/sass", {{ __DIR__ }})
 
     if File.exists?(project_bin)
       ::Sass.bin_path = project_bin

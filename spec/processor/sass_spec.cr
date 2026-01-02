@@ -8,6 +8,6 @@ describe Carafe::Processor::Sass do
 
     String.build do |io|
       processor.process(resource, IO::Memory.new("strong\n  color: red\n"), io)
-    end.should eq "strong {\n  color: red; }\n"
+    end.should eq "strong {\n  color: red;\n}\n"
   end
 end

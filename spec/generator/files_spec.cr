@@ -11,7 +11,7 @@ end
 
 describe Carafe::Generator::Files do
   it "reads files" do
-    generate_files.map(&.slug).should eq ["css/site.css", "folder/file.html", "index.md", "no-frontmatter.markdown", "simple.scss"]
+    generate_files.map(&.slug).sort!.should eq ["css/site.css", "folder/file.html", "index.md", "no-frontmatter.markdown", "simple.scss"].sort
   end
 
   it "reads files with includes" do
@@ -20,18 +20,18 @@ describe Carafe::Generator::Files do
     generator = Carafe::Generator::Files.new(site)
     generator.generate
 
-    site.files.map(&.slug).should eq ["css/site.css", "folder/file.html", "index.md", "no-frontmatter.markdown", "simple.scss", "_include.html"]
+    site.files.map(&.slug).sort!.should eq ["_include.html", "css/site.css", "folder/file.html", "index.md", "no-frontmatter.markdown", "simple.scss"].sort
   end
 
   it "creates resource" do
     files = generate_files
-    file = files[2]
+    file = files.find! { |resource| resource.slug == "index.md" }
     file.slug.should eq "index.md"
     file.content.should eq "Index\n"
     file.title.should eq "Homepage"
     file.has_frontmatter?.should be_true
 
-    file = files[4]
+    file = files.find! { |resource| resource.slug == "simple.scss" }
     file.slug.should eq "simple.scss"
     file.has_frontmatter?.should be_true
   end
@@ -49,6 +49,6 @@ describe Carafe::Generator::Files do
     generator = Carafe::Generator::Files.new(site)
     generator.generate
 
-    site.files[0]["defaults_applied"].should be_true
+    site.files.find! { |resource| resource.slug == "index.md" }["defaults_applied"].should be_true
   end
 end

@@ -7,7 +7,7 @@ describe Carafe::Generator::Collections do
     generator = Carafe::Generator::Collections.new(site, ["_posts"])
     generator.generate
 
-    resource = site.collections["posts"].resources.first
+    resource = site.collections["posts"].resources.sort_by(&.slug).first
     resource.slug.should eq "2017-07-16-my-first-post.html"
     # resource.output_path("/").should eq "/2017-07-16-my-first-post.html"
     resource.output_path.should eq "/2017/07/16/my-first-post.html"
@@ -26,6 +26,6 @@ describe Carafe::Generator::Collections do
     generator = Carafe::Generator::Collections.new(site, ["_posts"])
     generator.generate
 
-    site.collections["posts"].resources.first["defaults_applied"].should be_true
+    site.collections["posts"].resources.sort_by(&.slug).first["defaults_applied"].should be_true
   end
 end

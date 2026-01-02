@@ -8,16 +8,20 @@ describe Carafe::Config do
 
   it ".from_yaml" do
     File.open("spec/fixtures/_config.default.yml", "r") do |io|
-      Carafe::Config.from_yaml(io)
-    end.should eq Carafe::Config.new
+      config = Carafe::Config.from_yaml(io)
+      config.collections["posts"]["permalink"].should eq "/posts/:year-:month-:day-:title/"
+    end
   end
 
   it ".load_file" do
-    Carafe::Config.load_file("spec/fixtures/_config.default.yml").should eq Carafe::Config.new
+    config = Carafe::Config.load_file("spec/fixtures/_config.default.yml")
+    config.collections["posts"]["permalink"].should eq "/posts/:year-:month-:day-:title/"
   end
 
   it ".load" do
-    Carafe::Config.load("spec/fixtures/simple-site/").should eq Carafe::Config.new(site_dir: "spec/fixtures/simple-site/")
+    config = Carafe::Config.load("spec/fixtures/simple-site/")
+    config.site_dir.should eq "spec/fixtures/simple-site/"
+    config.port.should eq 4001
   end
 
   it "loads complex file" do

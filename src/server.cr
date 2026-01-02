@@ -1,4 +1,5 @@
 require "http/server"
+require "./site"
 
 class Carafe::Server
   getter site : Site
@@ -31,13 +32,19 @@ class Carafe::Server
     end
 
     def call(context : HTTP::Server::Context)
-      path = context.request.path
+      path = context.request.path.lstrip('/')
 
-      # if path.ends_with?('/')
-      #   path = path + "index.html"
-      # end
-
-      resource = @site.find(path)
+      resource = nil
+      if path.empty?
+        resource = @site.find("index.html")
+      elsif path.ends_with?('/')
+        resource = @site.find(path + "index.html")
+        resource ||= @site.find(path.rstrip('/') + ".html")
+      elsif !path.includes?('.')
+        resource = @site.find(path + ".html")
+      else
+        resource = @site.find(path)
+      end
 
       unless resource
         context.response.status_code = 404

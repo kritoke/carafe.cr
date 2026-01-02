@@ -5,6 +5,7 @@ require "./util/def_and_equals"
 
 @[Crinja::Attributes]
 class Carafe::Config
+  @[Crinja::Attributes(expose: [:output])]
   class Collection
     include YAML::Serializable
     include YAML::Serializable::Unmapped
@@ -32,7 +33,10 @@ class Carafe::Config
     include Util::DefAndEquals
   end
 
-  @[Crinja::Attributes]
+  # We remove :values from the expose list to prevent Crinja's auto-introspection
+  # from attempting to wrap the raw Hash(String, YAML::Any).
+  # The custom crinja_attribute method below handles this safely.
+  @[Crinja::Attributes(expose: [:scope])]
   class Defaults
     include YAML::Serializable
     include ::Crinja::Object::Auto
@@ -44,10 +48,17 @@ class Carafe::Config
     def initialize(@scope : Scope = Scope.new, @values : Carafe::Frontmatter = Carafe::Frontmatter.new)
     end
 
+    def crinja_attribute(value : Crinja::Value) : Crinja::Value
+      if value.to_string == "values"
+        return Config.yaml_to_crinja(@values)
+      end
+      super
+    end
+
     include Util::DefAndEquals
   end
 
-  @[Crinja::Attributes]
+  @[Crinja::Attributes(expose: [:path, :type])]
   struct Scope
     include YAML::Serializable
     include ::Crinja::Object::Auto
@@ -71,6 +82,12 @@ class Carafe::Config
   include ::Crinja::Object::Auto
   include Util::YAMLUnmapped
 
+  @[Crinja::Attributes(expose: [
+    :site_dir, :source, :destination, :collections_dir, :layouts_dir, :data_dir, :includes_dir,
+    :collections, :include, :exclude, :keep_files, :encoding, :markdown_ext, :future, :unpublished,
+    :excerpt_separator, :detach, :port, :host, :baseurl, :show_dir_listing, :livereload, :livereload_port,
+    :permalink, :paginate_path, :timezone, :sass_bin, :quiet, :verbose, :defaults,
+  ])]
   property site_dir : String = "."
   property source : String = "."
   property destination : String = "_site"
@@ -87,10 +104,10 @@ class Carafe::Config
   # Handling Reading
   # property? safe : Bool = false
   property include : Array(String) = [".htaccess"]
-  property exclude : Array(String) = %w(
+  property exclude : Array(String) = %w[
     Gemfile Gemfile.lock node_modules vendor/bundle/ vendor/cache/ vendor/gems/
     vendor/ruby/
-  )
+  ]
   property keep_files : Array(String) = [".git", ".svn"]
   property encoding : String = "utf-8"
   property markdown_ext : String = "markdown,mkdown,mkdn,mkd,md"
@@ -124,7 +141,7 @@ class Carafe::Config
   property livereload_port : Int32 = 35729
 
   # Output Configuration
-  property permalink : String = "date"
+  property permalink : String = "pretty"
   property paginate_path : String = "/page:num"
   property timezone : String? = nil # use the local timezone
 
@@ -178,20 +195,26 @@ class Carafe::Config
     raise "Could not find Carafe config file in #{site_dir} (looking for #{alternatives.join(", ")})"
   end
 
-  def self.yaml_to_crinja(any : YAML::Any) : Crinja::Value
-    case raw = any.raw
-    when Nil, Bool, Int64, Float64, String
-      Crinja::Value.new(raw)
+  def self.yaml_to_crinja(value) : Crinja::Value
+    return value if value.is_a?(Crinja::Value)
+
+    if value.is_a?(YAML::Any)
+      value = value.raw
+    end
+
+    case value
+    when Nil, Bool, Int32, Int64, Float64, String, Time
+      Crinja::Value.new(value)
     when Array
-      Crinja::Value.new(raw.map { |val| yaml_to_crinja(val) })
+      Crinja::Value.new(value.map { |val| yaml_to_crinja(val) })
     when Hash
       hash_val = {} of String => Crinja::Value
-      raw.each do |key, val|
+      value.each do |key, val|
         hash_val[key.to_s] = yaml_to_crinja(val)
       end
       Crinja::Value.new(hash_val)
     else
-      Crinja::Value.new(raw.to_s)
+      Crinja::Value.new(value.to_s)
     end
   end
 

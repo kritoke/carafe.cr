@@ -64,11 +64,11 @@ describe Carafe::Pipeline::Builder do
 
     builder.output_ext(".scss").should eq ".css"
     builder.output_ext(".sass").should eq ".css"
-    builder.output_ext(".css").should eq nil
-    builder.output_ext(".html").should eq nil
+    builder.output_ext(".css").should be_nil
+    builder.output_ext(".html").should be_nil
     builder.output_ext(".md").should eq ".html"
     builder.output_ext(".markdown").should eq ".html"
-    builder.output_ext(".jpg").should eq nil
+    builder.output_ext(".jpg").should be_nil
   end
 
   it "#output_ext_for" do

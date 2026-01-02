@@ -53,7 +53,7 @@ abstract class Carafe::Processor
   def process(resource : Resource, input : String) : String?
     String.build do |io|
       unless process(resource, IO::Memory.new(input), io)
-        return nil
+        return
       end
     end
   end

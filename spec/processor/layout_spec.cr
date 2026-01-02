@@ -32,7 +32,7 @@ describe Carafe::Processor::Layout do
     processor = Carafe::Processor::Layout.new(layouts_path: "spec/fixtures/simple-site/_layouts")
     resource = Carafe::Resource.new(site, "foo.md", frontmatter: Carafe::Frontmatter{"layout" => "simple"})
 
-    processor.process(resource, "Laus deo semper").should eq <<-'HTML'
+    processor.process(resource, "Laus deo semper").should eq <<-HTML
       <html>
         <body>
           Laus deo semper

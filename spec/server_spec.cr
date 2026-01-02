@@ -1,5 +1,6 @@
 require "./spec_helper"
 require "../src/server"
+require "../src/builder"
 
 private def send_request(handler : Carafe::Server::Handler, url : String) : HTTP::Client::Response
   request = HTTP::Request.new("GET", url)
@@ -17,6 +18,9 @@ end
 describe Carafe::Server do
   it do
     site = load_site("simple-site")
+
+    site.run_generators
+    Carafe::Builder.new(site.config.destination).build(site)
 
     handler = Carafe::Server::Handler.new(site)
 

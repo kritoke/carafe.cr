@@ -36,27 +36,27 @@ class Carafe::Server
     end
 
     def call(context : HTTP::Server::Context)
-      path = context.request.path.lstrip('/')
-      STDERR.puts "Server trying path: #{path}"
+      path = context.request.path
 
       resource = nil
-      if path.empty?
-        STDERR.puts "Trying empty path: index.html"
-        resource = @site.find("index.html")
+      if path.empty? || path == "/"
+        resource = @site.find("/")
       elsif path.ends_with?('/')
-        STDERR.puts "Trying path with /: #{path}index.html"
-        resource = @site.find(path + "index.html")
-        STDERR.puts "Trying path with / (rstrip): #{path.rstrip('/') + ".html"}"
-        resource ||= @site.find(path.rstrip('/') + ".html")
+        resource = @site.find(path)
+        if resource.nil?
+          resource = @site.find(path + "index.html")
+        end
+      elsif path == "/index.html"
+        resource = @site.find("/index.html") || @site.find("/")
       elsif !path.includes?('.')
-        STDERR.puts "Trying path with no .: #{path}.html"
         resource = @site.find(path + ".html")
       else
-        STDERR.puts "Trying path as is: #{path}"
         resource = @site.find(path)
+        if resource.nil? && path.ends_with?(".html")
+          path_without_ext = path[0...-5]
+          resource = @site.find(path_without_ext)
+        end
       end
-
-      STDERR.puts "Resource found: #{resource}"
 
       unless resource
         context.response.status_code = 404
@@ -66,6 +66,7 @@ class Carafe::Server
       end
 
       @site.run_processor(context.response, resource)
+      context.response.close
     end
   end
 

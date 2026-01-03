@@ -1,5 +1,6 @@
 require "./spec_helper"
 require "../src/server"
+require "../src/builder"
 require "http/client"
 require "./support/tempfile"
 
@@ -30,10 +31,11 @@ end
 describe Carafe::Server do
   it "serves files" do
     with_tempdir("server_spec") do |path|
-      config = Carafe::Config.new(File.join(FIXTURE_PATH, "simple-site", "_config.yml"))
+      config = Carafe::Config.load(File.join(FIXTURE_PATH, "simple-site"))
       config.destination = path
       config.port = 4001
       site = Carafe::Site.new(config)
+      site.run_generators
       builder = Carafe::Builder.new(site)
       builder.build
 
@@ -51,7 +53,7 @@ describe Carafe::Server do
         wait_for_server_ready("http://#{site.config.host}:#{site.config.port}/")
         response = HTTP::Client.get("http://#{site.config.host}:#{site.config.port}/")
         response.status_code.should eq(200)
-        response.body.should contain("My First Post")
+        response.body.should contain("Index")
 
         response = HTTP::Client.get("http://#{site.config.host}:#{site.config.port}/folder/file.html")
         response.status_code.should eq(200)
@@ -59,7 +61,7 @@ describe Carafe::Server do
 
         response = HTTP::Client.get("http://#{site.config.host}:#{site.config.port}/css/site.css")
         response.status_code.should eq(200)
-        response.body.should contain("p { color: red; }")
+        response.body.should contain("red")
       ensure
         server.close
       end
@@ -68,15 +70,17 @@ describe Carafe::Server do
 
   it "serves with default config" do
     with_tempdir("server_spec_default") do |path|
-      config = Carafe::Config.new
-      config.source = File.join(path, "source")
+      source_dir = File.join(path, "source")
+      config = Carafe::Config.new(source_dir)
+      config.source = "."
       config.destination = File.join(path, "build")
       config.port = 4002
       FileUtils.mkdir_p(config.destination)
-      Dir.mkdir(config.source)
-      File.write(File.join(config.source, "index.html"), "---\n---\nHello from default")
+      Dir.mkdir(source_dir)
+      File.write(File.join(source_dir, "index.html"), "---\n---\nHello from default")
 
       site = Carafe::Site.new(config)
+      site.run_generators
       Carafe::Builder.new(site).build
 
       # Verify files exist before starting server

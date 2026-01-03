@@ -1,10 +1,13 @@
-require "./carafe/config"
-require "./carafe/site"
-require "./carafe/entry"
-# require "./carafe/processor"
-# require "./carafe/generator"
+require "./crinja_lib"
+require "./config"
+require "./site"
+# require "./entry"
+require "./plugin"
+# require "./processor"
+# require "./generator"
 require "yaml"
 
-module Carafe
-  alias Frontmatter = Crinja::Variables
-end
+# Load plugins
+require "./plugins/lunr"
+require "./plugins/pagination"
+require "./plugins/remote_theme"

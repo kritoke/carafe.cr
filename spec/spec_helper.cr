@@ -1,5 +1,11 @@
 require "spec"
+require "uri"
 require "../src/site"
+
+# Load plugins
+require "../src/plugins/lunr"
+require "../src/plugins/pagination"
+require "../src/plugins/remote_theme"
 
 FIXTURE_PATH = File.expand_path("fixtures", __DIR__)
 

@@ -1,3 +1,4 @@
+require "crinja"
 require "html"
 
 Crinja.filter(:date_to_string) do

@@ -2,6 +2,7 @@ require "./resource"
 require "./pipeline"
 require "./config"
 require "./collection"
+require "./plugin"
 require "yaml"
 
 @[::Crinja::Attributes(expose: [files, collections])]
@@ -20,14 +21,17 @@ class Carafe::Site
 
   getter pipeline_builder : Pipeline::Builder
 
+  getter plugin_manager : PluginManager
+
   @time : Time
 
   def initialize(@config : Config = Config.new)
     @time = Time.local
     @site_dir = File.expand_path(config.site_dir)
-
     @pipeline_builder = uninitialized Pipeline::Builder
+    @plugin_manager = uninitialized PluginManager
     @pipeline_builder = Pipeline::Builder.new(self)
+    @plugin_manager = PluginManager.new(self)
 
     init_collections
   end
@@ -58,9 +62,13 @@ class Carafe::Site
   end
 
   def run_generators
+    # Load plugins - they may register additional generators
+    @plugin_manager.load_from_config
+
+    # Add core generators
     @generators << Generator::Collections.new(self)
     @generators << Generator::Files.new(self)
-    @generators << Generator::Pagination.new(self)
+    # Note: Pagination is handled by the pagination plugin
 
     @generators.sort_by!(&.priority)
 

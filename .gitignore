@@ -4,3 +4,4 @@
 /.shards/
 .DS_store
 _site/
+*.dwarf

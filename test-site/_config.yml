@@ -1,0 +1,4 @@
+site_title: Test Site
+remote_theme: mmistakes/minimal-mistakes
+destination: _site
+source: .

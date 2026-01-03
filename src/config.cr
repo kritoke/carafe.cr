@@ -141,7 +141,7 @@ class Carafe::Config
   property livereload_port : Int32 = 35729
 
   # Output Configuration
-  property permalink : String = "pretty"
+  property permalink : String = "date"
   property paginate_path : String = "/page:num"
   property timezone : String? = nil # use the local timezone
 

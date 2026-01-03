@@ -175,7 +175,7 @@ class Carafe::Resource
     output_path = expand_permalink(permalink)
 
     if output_path.ends_with?('/')
-      output_path = "#{output_path}/index#{output_ext || ".html"}"
+      output_path = "#{output_path}index#{output_ext || ".html"}"
     elsif File.extname(output_path).empty? && has_key?("permalink") && (output_ext = self.output_ext)
       output_path += output_ext
     end

@@ -25,6 +25,10 @@ class Carafe::Server
     @server.listen
   end
 
+  def close
+    @server.close
+  end
+
   class Handler
     include HTTP::Handler
 
@@ -33,18 +37,26 @@ class Carafe::Server
 
     def call(context : HTTP::Server::Context)
       path = context.request.path.lstrip('/')
+      STDERR.puts "Server trying path: #{path}"
 
       resource = nil
       if path.empty?
+        STDERR.puts "Trying empty path: index.html"
         resource = @site.find("index.html")
       elsif path.ends_with?('/')
+        STDERR.puts "Trying path with /: #{path}index.html"
         resource = @site.find(path + "index.html")
+        STDERR.puts "Trying path with / (rstrip): #{path.rstrip('/') + ".html"}"
         resource ||= @site.find(path.rstrip('/') + ".html")
       elsif !path.includes?('.')
+        STDERR.puts "Trying path with no .: #{path}.html"
         resource = @site.find(path + ".html")
       else
+        STDERR.puts "Trying path as is: #{path}"
         resource = @site.find(path)
       end
+
+      STDERR.puts "Resource found: #{resource}"
 
       unless resource
         context.response.status_code = 404

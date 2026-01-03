@@ -47,10 +47,14 @@ DART_URL_WIN := https://github.com/sass/dart-sass/releases/download/$(DART_VERSI
 CURL := curl -fL --retry 3 --retry-delay 2
 UNAME_S := $(OS)
 
-.PHONY: sass clean-sass npm-sass ensure-bin
+.PHONY: sass clean-sass npm-sass ensure-bin test
 
 sass: $(SASS_BIN)
 	@echo "Sass ready at $(SASS_BIN)"
+
+test:
+	crystal spec
+
 
 $(SASS_BIN): ensure-bin
 	@echo "Attempting Dart Sass install for $(DART_OS)/$(DART_ARCH) version $(DART_VERSION)..."

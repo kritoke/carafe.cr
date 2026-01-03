@@ -9,8 +9,9 @@ describe Carafe::Builder do
     site.files << Carafe::Resource.new(site, "sample.md", "Foo **{{ page.name }}**")
 
     with_tempfile("builder") do |output_path|
-      builder = Carafe::Builder.new(output_path)
-      builder.build(site)
+      site.config.destination = output_path
+      builder = Carafe::Builder.new(site)
+      builder.build
     end
   end
 end

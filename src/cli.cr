@@ -124,10 +124,10 @@ class Carafe::CLI
       site.run_generators
     end
 
-    builder = Carafe::Builder.new(site.config.destination)
+    builder = Carafe::Builder.new(site)
 
     profile "Running builder" do
-      builder.build(site)
+      builder.build
     end
   end
 

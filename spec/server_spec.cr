@@ -12,7 +12,7 @@ def wait_for_server_ready(url : String, timeout : Time::Span = 5.seconds)
       HTTP::Client.new(uri) do |client|
         client.connect_timeout = 1.second
         client.read_timeout = 1.second
-        response = client.get(uri.request_target)
+        client.get(uri.request_target)
         return # Server is up and responding
       end
     rescue ex : IO::Error | Socket::Error
@@ -40,10 +40,6 @@ describe Carafe::Server do
       builder.build
 
       # Verify files exist before starting server
-      unless File.exists?(File.join(path, "index.html"))
-        puts "Files in #{path}:"
-        Dir.glob(File.join(path, "**", "*")).each { |f| puts f }
-      end
       File.exists?(File.join(path, "index.html")).should be_true, "index.html missing in #{path}"
 
       server = Carafe::Server.new(site)

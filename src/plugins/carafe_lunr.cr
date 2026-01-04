@@ -3,7 +3,7 @@ require "json"
 
 class Carafe::Plugins::Lunr < Carafe::Plugin
   def name : String
-    "lunr"
+    "carafe-lunr"
   end
 
   def version : String
@@ -102,3 +102,6 @@ class Carafe::Plugins::Lunr < Carafe::Plugin
     end
   end
 end
+
+# Register this plugin
+Carafe::Plugin.register_implementation(Carafe::Plugins::Lunr)

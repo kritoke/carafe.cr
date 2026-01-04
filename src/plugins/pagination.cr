@@ -103,3 +103,6 @@ class Carafe::Plugins::Pagination < Carafe::Plugin
     site.generators << Generator.new(site)
   end
 end
+
+# Register this plugin
+Carafe::Plugin.register_implementation(Carafe::Plugins::Pagination)

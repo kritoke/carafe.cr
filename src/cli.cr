@@ -3,6 +3,7 @@ require "./builder"
 require "./server"
 require "option_parser"
 require "log"
+require "./carafe"
 
 class Carafe::CLI
   getter logger : Log

@@ -3,6 +3,7 @@ require "./pipeline"
 require "./config"
 require "./collection"
 require "./plugin"
+require "./generator/data"
 require "yaml"
 
 @[::Crinja::Attributes(expose: [files, collections])]
@@ -22,6 +23,8 @@ class Carafe::Site
   getter pipeline_builder : Pipeline::Builder
 
   getter plugin_manager : PluginManager
+
+  getter data : Hash(String, ::YAML::Any) = {} of String => ::YAML::Any
 
   @time : Time
 
@@ -68,7 +71,8 @@ class Carafe::Site
     # Add core generators
     @generators << Generator::Collections.new(self)
     @generators << Generator::Files.new(self)
-    # Note: Pagination is handled by the pagination plugin
+    @generators << Generator::Data.new(self)
+    # Note: Pagination is handled by pagination plugin
 
     @generators.sort_by!(&.priority)
 

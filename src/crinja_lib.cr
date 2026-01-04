@@ -18,22 +18,18 @@ Crinja.filter(:slugify) do
   Crinja::Value.new(target.to_s.downcase.gsub(/([^\w_.]+)/, '-'))
 end
 
-# TODO: Implement
 Crinja.filter(:relative_path) do
-  target
+  target.as_s
 end
 
-# TODO: Implement
 Crinja.filter(:relative_url) do
-  target
+  target.as_s
 end
 
-# TODO: Implement
 Crinja.filter(:absolute_url) do
-  target
+  target.as_s
 end
 
-# TODO: Implement
 Crinja.filter(:localize) do
   target
 end
@@ -44,6 +40,39 @@ end
 
 Crinja.filter(:strip_index) do
   target.as_s.sub(%r{/?index\.html?$}, "/")
+end
+
+Crinja.filter(:contains) do
+  search = arguments.varargs.empty? ? Crinja::Value.new("") : arguments.varargs[0]
+  target.as_s.includes?(search.to_s)
+end
+
+Crinja.filter(:strip_newlines) do
+  target.as_s.gsub(/\n/, "")
+end
+
+Crinja.filter(:strip) do
+  target.as_s.strip
+end
+
+Crinja.filter(:newline_to_br) do
+  target.as_s.gsub(/\n/, "<br />\n")
+end
+
+Crinja.filter(:escape_once) do
+  HTML.escape(target.as_s)
+end
+
+# Override striptags filter (aliased as strip_html) to handle empty strings
+Crinja.filter(:striptags) do
+  str = target.to_s
+  return Crinja::Value.new("") if str.empty?
+  begin
+    # Simple HTML tag stripping - remove everything between < and >
+    Crinja::Value.new(str.gsub(/<[^>]*>/, "").gsub(/\s+/, " ").strip)
+  rescue
+    Crinja::Value.new(str)
+  end
 end
 
 Crinja.filter(:xml_escape) do
@@ -100,3 +129,28 @@ class Crinja::Tag::Highlight < Crinja::Tag
 end
 
 Crinja::Tag::Library::TAGS << Crinja::Tag::Highlight
+
+# Liquid/Jekyll compatibility: capture tag
+# Captures the output of a block into a variable
+class Crinja::Tag::Capture < Crinja::Tag
+  name "capture", "endcapture"
+
+  private def interpret(io : IO, renderer : Crinja::Renderer, tag_node : TagNode)
+    env = renderer.env
+
+    # Parse the variable name from arguments
+    args = ArgumentsParser.new(tag_node.arguments, renderer.env.config)
+    var_name = args.parse_expression
+    args.close
+
+    # Capture the block output
+    captured_output = String.build do |str_io|
+      renderer.render(tag_node.block).value(str_io)
+    end
+
+    # Store the captured output in the context
+    env.context[var_name.to_s] = Crinja::Value.new(captured_output.strip)
+  end
+end
+
+Crinja::Tag::Library::TAGS << Crinja::Tag::Capture

@@ -75,9 +75,26 @@ class Carafe::Resource
       when Time
         raw
       when String
-        Time.parse(raw, "%Y-%m-%d %H:%M", Time::Location.local)
+        if raw.empty?
+          Time.local.at_beginning_of_day
+        else
+          begin
+            # Try common date formats
+            Time.parse(raw, "%Y-%m-%d %H:%M:%S %z", Time::Location.local)
+          rescue
+            begin
+              Time.parse(raw, "%Y-%m-%d %H:%M", Time::Location.local)
+            rescue
+              begin
+                Time.parse(raw, "%Y-%m-%d", Time::Location.local)
+              rescue
+                Time.local.at_beginning_of_day
+              end
+            end
+          end
+        end
       else
-        raise "Unknown date format (#{raw})"
+        Time.local.at_beginning_of_day
       end
     elsif date = date_and_shortname_from_slug.first
       date
@@ -202,7 +219,7 @@ class Carafe::Resource
   def date_and_shortname_from_slug : {Time?, String?}
     basename = self.basename
 
-    if basename && (data = basename.match /^(?:(\d{2}\d{2}?)-(\d{1,2})-(\d{1,2})-)?(.+)$/)
+    if basename && (data = basename.match /^(?:(\d{4})-(\d{1,2})-(\d{1,2})-)?(.+)$/)
       if data[1]?
         date = Time.local(data[1].to_i, data[2].to_i, data[3].to_i)
       end

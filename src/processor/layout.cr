@@ -38,12 +38,44 @@ class Carafe::Processor::Layout < Carafe::Processor
     loop do
       layout_template, frontmatter = layouts[layout_name.to_s]
 
+      # Create data hash with default values for common keys
+      data_native = to_native(@site.data)
+      data_hash = data_native.as_h
+      ensure_data_defaults(data_hash)
+
+      site_data = {
+        "config"          => to_native(@site.config),
+        "data"            => data_hash,
+        "locale"          => @site.config["locale"]?.try(&.as_s) || "en",
+        "title"           => @site.config["title"]?.try(&.as_s) || "Site",
+        "title_separator" => @site.config["title_separator"]?.try(&.as_s) || "|",
+        "baseurl"         => @site.config["baseurl"]?.try(&.as_s) || "",
+        "url"             => @site.config["url"]?.try(&.as_s) || "",
+      }
+
+      # Add page URL and other common Jekyll page variables
+      page_data = to_native(resource.frontmatter).as_h
+
+      # Get URL from resource
+      url = resource.url.try(&.to_s) || ""
+      path = resource.slug || ""
+
+      # Set page URL and other common Jekyll page variables with defaults
+      page_data = page_data.merge({
+        "url"     => url,
+        "path"    => path,
+        "authors" => page_data["authors"]? || [] of String,
+        "author"  => page_data["author"]? || "",
+        "date"    => page_data["date"]? || resource.date.to_s,
+        "excerpt" => page_data["excerpt"]? || "",
+      })
+
       variables = {
         "content" => ::Crinja::SafeString.new(content),
         "layout"  => to_native(frontmatter).as_h,
-        "post"    => to_native(resource.frontmatter).as_h,
-        "page"    => to_native(resource.frontmatter).as_h,
-        "site"    => {"config" => to_native(@site.config)},
+        "post"    => page_data,
+        "page"    => page_data,
+        "site"    => site_data,
       }
 
       layout_name = frontmatter["layout"]?.try(&.as_s?)
@@ -107,5 +139,11 @@ class Carafe::Processor::Layout < Carafe::Processor
 
   private def to_native(value) : ::Crinja::Value
     ::Crinja::Value.new(value)
+  end
+
+  private def ensure_data_defaults(data_hash : Hash)
+    # Add default values for commonly accessed data keys
+    authors_key = ::Crinja::Value.new("authors")
+    data_hash[authors_key] = ::Crinja::Value.new([] of String) unless data_hash.has_key?(authors_key)
   end
 end

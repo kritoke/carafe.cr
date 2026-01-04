@@ -8,6 +8,7 @@ require "./plugin"
 require "yaml"
 
 # Load plugins
-require "./plugins/lunr"
+require "./plugins/carafe_lunr"
 require "./plugins/pagination"
 require "./plugins/remote_theme"
+require "./plugins/carafe_tags"

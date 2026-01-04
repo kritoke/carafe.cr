@@ -83,7 +83,7 @@ describe Carafe::Plugins::RemoteTheme::Generator do
     # Create a mock cached theme directory
     theme_cache_dir = File.join(site.config.site_dir, ".carafe/themes", "test_repo")
     FileUtils.mkdir_p(theme_cache_dir)
-    
+
     # Create a mock layout
     layouts_dir = File.join(theme_cache_dir, "_layouts")
     FileUtils.mkdir_p(layouts_dir)
@@ -108,7 +108,7 @@ describe Carafe::Plugins::RemoteTheme::Generator do
     # Create a mock cached theme directory
     theme_cache_dir = File.join(site.config.site_dir, ".carafe/themes", "test_repo")
     FileUtils.mkdir_p(theme_cache_dir)
-    
+
     # Create theme directories with files
     layouts_dir = File.join(theme_cache_dir, "_layouts")
     FileUtils.mkdir_p(layouts_dir)
@@ -148,7 +148,7 @@ describe Carafe::Plugins::RemoteTheme::Generator do
     # Create a mock cached theme directory
     theme_cache_dir = File.join(site.config.site_dir, ".carafe/themes", "test_repo")
     FileUtils.mkdir_p(theme_cache_dir)
-    
+
     theme_layouts_dir = File.join(theme_cache_dir, "_layouts")
     FileUtils.mkdir_p(theme_layouts_dir)
     File.write(File.join(theme_layouts_dir, "default.html"), "Theme layout")
@@ -172,7 +172,7 @@ describe Carafe::Plugins::RemoteTheme::Generator do
     # Create a mock cached theme directory
     theme_cache_dir = File.join(site.config.site_dir, ".carafe/themes", "test_repo")
     FileUtils.mkdir_p(theme_cache_dir)
-    
+
     theme_config_content = "theme:\n  name: test-theme"
     File.write(File.join(theme_cache_dir, "_config.yml"), theme_config_content)
 

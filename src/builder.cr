@@ -16,6 +16,21 @@ class Carafe::Builder
         raise Exception.new("Error running processors for collection #{collection.name}", cause: ex)
       end
     end
+
+    # Only cleanup after successful build
+    cleanup
+  end
+
+  def cleanup
+    puts "DEBUG: Running cleanup for #{@site.plugin_manager.plugins.size} plugins"
+    # Call cleanup on all plugins
+    @site.plugin_manager.plugins.each do |plugin|
+      puts "DEBUG: Checking plugin #{plugin.name} for cleanup method"
+      if plugin.responds_to?(:cleanup)
+        puts "DEBUG: Calling cleanup on #{plugin.name}"
+        plugin.cleanup(@site)
+      end
+    end
   end
 
   def run_processors(resources : Array(Resource))

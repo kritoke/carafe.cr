@@ -106,7 +106,7 @@ class Carafe::Config
   property include : Array(String) = [".htaccess"]
   property exclude : Array(String) = %w[
     Gemfile Gemfile.lock node_modules vendor/bundle/ vendor/cache/ vendor/gems/
-    vendor/ruby/
+    vendor/ruby/ *.nix gemset.nix
   ]
   property keep_files : Array(String) = [".git", ".svn"]
   property encoding : String = "utf-8"

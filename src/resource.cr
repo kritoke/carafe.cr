@@ -157,6 +157,24 @@ class Carafe::Resource
       return Crinja::Value.new(url.try(&.to_s) || "")
     when "date"
       return Crinja::Value.new(date)
+    when "paginator"
+      # Return default paginator if none set
+      paginator = self.paginator
+      if paginator
+        return Crinja::Value.new(paginator)
+      else
+        # Return an empty paginator with default values
+        return Crinja::Value.new({
+          "page" => 1,
+          "per_page" => 0,
+          "total_pages" => 1,
+          "total_items" => 0,
+          "previous_page" => nil,
+          "previous_page_path" => "",
+          "next_page" => nil,
+          "next_page_path" => "",
+        })
+      end
     end
 
     result = super

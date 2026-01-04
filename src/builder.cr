@@ -13,6 +13,12 @@ class Carafe::Builder
       begin
         run_processors(collection.resources)
       rescue ex
+        STDERR.puts "Error processing collection #{collection.name}: #{ex.message}"
+        STDERR.puts ex.backtrace.join("\n")
+        if cause = ex.cause
+          STDERR.puts "Caused by: #{cause.message}"
+          STDERR.puts cause.backtrace.join("\n")
+        end
         raise Exception.new("Error running processors for collection #{collection.name}", cause: ex)
       end
     end

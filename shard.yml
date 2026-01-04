@@ -12,16 +12,22 @@ targets:
 license: MIT
 
 dependencies:
+  liquid:
+    github: kritoke/liquid.cr
+    branch: master
   crinja:
     github: straight-shoota/crinja
-    branch: master 
-    #path: ../crinja
+    branch: master
   markd:
     github: icyleaf/markd
+  tartrazine:
+    github: ralsina/tartrazine
+    version: ~> 0.20.0
   serve:
     github: superpaintman/serve
   sassd:
       github: kritoke/sassd.cr
+      version: 0.2.0
 
 development_dependencies:
   ameba:

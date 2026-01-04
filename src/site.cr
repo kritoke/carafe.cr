@@ -137,6 +137,9 @@ class Carafe::Site
 
   def crinja_attribute(value : Crinja::Value) : Crinja::Value
     case value.to_s
+    when "time"
+      # Jekyll compatibility: site.time returns the current time
+      Crinja::Value.new(Time.local)
     when "posts"
       # Jekyll compatibility: site.posts should return the posts collection's resources
       posts_collection = @collections["posts"]?

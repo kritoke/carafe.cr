@@ -80,6 +80,13 @@ class Carafe::Plugins::Lunr < Carafe::Plugin
       # Strip HTML tags and get plain text content
       content = resource.content || ""
 
+      # Ensure valid UTF-8 encoding before processing
+      # This handles cases where content might have invalid UTF-8 bytes
+      unless content.valid_encoding?
+        # If invalid, scrub the string to remove invalid UTF-8 sequences
+        content = content.scrub
+      end
+
       # Simple HTML tag removal
       content.gsub(/<[^>]*>/, "")
         .gsub(/\s+/, " ")

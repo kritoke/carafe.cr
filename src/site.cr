@@ -6,7 +6,7 @@ require "./plugin"
 require "./generator/data"
 require "yaml"
 
-@[::Crinja::Attributes(expose: [files, collections])]
+@[::Crinja::Attributes(expose: [files])]
 class Carafe::Site
   include ::Crinja::Object::Auto
 
@@ -16,7 +16,14 @@ class Carafe::Site
 
   getter files : Array(Resource) = [] of Resource
 
-  getter collections = {} of String => Collection
+  # Internal storage for collections
+  @collections = {} of String => Collection
+
+  # Internal accessor for collections (for use in Carafe code)
+  @[Crinja::Attribute(ignore: true)]
+  def collections
+    @collections
+  end
 
   getter generators : Array(Generator) = [] of Generator
 
@@ -111,7 +118,8 @@ class Carafe::Site
       scope = defaults.scope
 
       glob = scope.path
-      next if glob && !File.match?(glob, path)
+      # Empty glob means "match all paths" (Jekyll behavior)
+      next if glob && !glob.empty? && !File.match?(glob, path)
 
       scope_type = scope.type
       next if scope_type && (scope_type != type)
@@ -128,12 +136,47 @@ class Carafe::Site
   end
 
   def crinja_attribute(value : Crinja::Value) : Crinja::Value
-    result = super
+    case value.to_s
+    when "posts"
+      # Jekyll compatibility: site.posts should return the posts collection's resources
+      posts_collection = @collections["posts"]?
+      if posts_collection
+        # Return the posts array directly (as Crinja::Value array)
+        resources_array = posts_collection.resources.map do |resource|
+          Crinja::Value.new(resource)
+        end
+        Crinja::Value.new(resources_array)
+      else
+        Crinja::Value.new(Crinja::Undefined.new("posts"))
+      end
+    when "collections"
+      # Convert collections hash to an array of collection objects for Jekyll compatibility
+      # In Jekyll/Liquid, {% for collection in site.collections %} iterates over collection objects
+      collections_array = [] of Crinja::Value
+      @collections.each do |_name, collection|
+        # Convert resources array to Crinja array
+        resources_array = collection.resources.map do |resource|
+          # Each resource should already be Crinja-compatible
+          Crinja::Value.new(resource)
+        end
 
-    if result.undefined?
-      config.crinja_attribute(value)
+        collection_data = {
+          "name"    => Crinja::Value.new(collection.name),
+          "output"  => Crinja::Value.new(collection.defaults.output?),
+          "docs"    => Crinja::Value.new(resources_array),  # Jekyll uses 'docs' for collection resources
+          "resources" => Crinja::Value.new(Crinja::Undefined.new("resources"))
+        }
+        collections_array << Crinja::Value.new(collection_data)
+      end
+      Crinja::Value.new(collections_array)
     else
-      result
+      result = super
+
+      if result.undefined?
+        config.crinja_attribute(value)
+      else
+        result
+      end
     end
   end
 end

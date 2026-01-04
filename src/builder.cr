@@ -22,12 +22,9 @@ class Carafe::Builder
   end
 
   def cleanup
-    puts "DEBUG: Running cleanup for #{@site.plugin_manager.plugins.size} plugins"
     # Call cleanup on all plugins
     @site.plugin_manager.plugins.each do |plugin|
-      puts "DEBUG: Checking plugin #{plugin.name} for cleanup method"
       if plugin.responds_to?(:cleanup)
-        puts "DEBUG: Calling cleanup on #{plugin.name}"
         plugin.cleanup(@site)
       end
     end
@@ -37,7 +34,9 @@ class Carafe::Builder
     resources.each do |resource|
       puts "  #{resource.slug}"
       output_relative_path = resource.output_path
-      output_path = File.join(@site.config.destination, output_relative_path)
+      output_path = File.join(@site.site_dir, @site.config.destination, output_relative_path)
+
+      puts "    Output path: #{output_path}" if @site.config.verbose?
 
       FileUtils.mkdir_p(File.dirname(output_path))
 

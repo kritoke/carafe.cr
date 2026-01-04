@@ -18,22 +18,20 @@ class Carafe::Plugins::RemoteTheme < Carafe::Plugin
   def enabled?(config : Carafe::Config) : Bool
     # Check if remote_theme is configured in _config.yml
     remote_theme = config["remote_theme"]?
-    puts "DEBUG: remote_theme config check: #{remote_theme}" unless config.quiet?
     return false unless remote_theme
 
     remote_theme_str = remote_theme.as_s?
-    puts "DEBUG: remote_theme string: #{remote_theme_str}" unless config.quiet?
     return false unless remote_theme_str
 
     # Validate format (owner/repo)
     parts = remote_theme_str.split('/')
     valid = parts.size == 2 && !parts[0].empty? && !parts[1].empty?
-    puts "DEBUG: remote_theme valid: #{valid}" unless config.quiet?
     valid
   end
 
   def register(site : Carafe::Site) : Nil
     # Add the remote theme generator to the site
+    puts "RemoteTheme: Registering generator" unless site.config.quiet?
     site.generators << Generator.new(site)
   end
 
@@ -48,11 +46,14 @@ class Carafe::Plugins::RemoteTheme < Carafe::Plugin
       remote_theme = site.config["remote_theme"]?.try(&.as_s)
       return unless remote_theme
 
+      puts "RemoteTheme: Processing theme #{remote_theme}" unless site.config.quiet?
+
       parts = remote_theme.split('/')
       owner = parts[0]
       repo = parts[1].sub(/\.git$/, "")
 
       cache_dir = File.join(site.config.site_dir, THEME_CACHE_DIR, "#{owner}_#{repo}")
+      puts "RemoteTheme: Cache dir: #{cache_dir}" unless site.config.quiet?
 
       # Download or use cached theme
       if File.directory?(cache_dir)
@@ -64,6 +65,7 @@ class Carafe::Plugins::RemoteTheme < Carafe::Plugin
 
       # Find the actual theme directory (might be one level deep)
       theme_dir = find_theme_root(cache_dir)
+      puts "RemoteTheme: Theme dir: #{theme_dir}" unless site.config.quiet?
 
       # Integrate theme files
       integrate_theme(theme_dir, site)

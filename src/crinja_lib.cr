@@ -4,9 +4,9 @@ require "html"
 Crinja.filter(:date_to_string) do
   value = target.raw
   if value.is_a?(Time)
-    value.to_s "%-d %b %Y"
+    Crinja::Value.new(value.to_s("%-d %b %Y"))
   else
-    value
+    target
   end
 end
 
@@ -19,15 +19,18 @@ Crinja.filter(:slugify) do
 end
 
 Crinja.filter(:relative_path) do
-  target.as_s
+  return Crinja::Value.new("") if target.undefined?
+  Crinja::Value.new(target.to_s)
 end
 
 Crinja.filter(:relative_url) do
-  target.as_s
+  return Crinja::Value.new("") if target.undefined?
+  Crinja::Value.new(target.to_s)
 end
 
 Crinja.filter(:absolute_url) do
-  target.as_s
+  return Crinja::Value.new("") if target.undefined?
+  Crinja::Value.new(target.to_s)
 end
 
 Crinja.filter(:localize) do
@@ -35,12 +38,41 @@ Crinja.filter(:localize) do
 end
 
 Crinja.filter(:normalize_whitespace) do
-  target.as_s.gsub(/\s+/, ' ')
+  return Crinja::Value.new("") if target.undefined?
+  Crinja::Value.new(target.as_s.gsub(/\s+/, ' '))
+end
+
+# Jekyll filter: newline_to_br
+Crinja.filter(:newline_to_br) do
+  return Crinja::Value.new("") if target.undefined?
+  Crinja::Value.new(target.to_s.gsub(/\n/, "<br />\n"))
+end
+
+# Jekyll filter: strip_html
+Crinja.filter(:strip_html) do
+  return Crinja::Value.new("") if target.undefined?
+  # Simple HTML stripping - remove HTML tags
+  Crinja::Value.new(target.to_s.gsub(/<[^>]*>/, ""))
+end
+
+# Jekyll filter: strip_newlines
+Crinja.filter(:strip_newlines) do
+  return Crinja::Value.new("") if target.undefined?
+  Crinja::Value.new(target.to_s.gsub(/\n[\s]*/, ""))
+end
+
+# Jekyll filter: truncatewords
+Crinja.filter({words: 15}, :truncatewords) do
+  return Crinja::Value.new("") if target.undefined?
+  words = arguments["words"].to_i
+  Crinja::Value.new(target.to_s.split(/\s+/)[0, words].join(" "))
 end
 
 Crinja.filter(:strip_index) do
-  target.as_s.sub(%r{/?index\.html?$}, "/")
+  return Crinja::Value.new("") if target.undefined?
+  Crinja::Value.new(target.as_s.sub(%r{/?index\.html?$}, "/"))
 end
+
 
 Crinja.filter(:contains) do
   search = arguments.varargs.empty? ? Crinja::Value.new("") : arguments.varargs[0]
@@ -80,7 +112,25 @@ Crinja.filter(:xml_escape) do
 end
 
 Crinja.filter(:date_to_xmlschema) do
-  target.raw.as(Time).to_rfc3339
+  time = if target.raw.is_a?(Time)
+            target.raw.as(Time)
+          elsif target.raw.is_a?(String)
+            # Try to parse common date formats
+            date_str = target.as_s
+            begin
+              Time.parse_rfc3339(date_str)
+            rescue
+              begin
+                Time.parse_iso8601(date_str)
+              rescue
+                # If all else fails, try the format used in posts
+                Time.parse(date_str, "%Y-%m-%d", Time::Location.local)
+              end
+            end
+          else
+            Time.local
+          end
+  time.to_rfc3339
 end
 
 class Crinja::Tag::Unless < Crinja::Tag::If
@@ -120,9 +170,16 @@ class Crinja::Tag::Highlight < Crinja::Tag
     unless args.current_token.kind.eof?
       language = args.current_token.value
       io << %( class="language-#{language}" data-lang="#{language}")
+      # Consume the language token
+      args.next_token
+
+      # Support additional options like "lineos" - these can be added as data attributes
+      # For now, just consume them silently
+      while !args.current_token.kind.eof?
+        args.next_token
+      end
     end
     io << %(>)
-    args.close
     io << Crinja::SafeString.new(renderer.render(tag_node.block).value.chomp)
     io << %(</code></pre></figure>)
   end

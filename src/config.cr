@@ -171,7 +171,8 @@ class Carafe::Config
   def merge_defaults
     posts = collections["posts"] ||= Config::Collection.new
     posts["permalink"] ||= permalink
-    posts["layout"] ||= "post"
+    # Don't hardcode the layout - let Jekyll's defaults system handle it
+    # posts["layout"] ||= "post"
   end
 
   def self.load_file(filename : String) : Config

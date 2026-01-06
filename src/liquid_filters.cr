@@ -354,8 +354,19 @@ module Carafe::LiquidFilters
 
     def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
       return Liquid::Any.new(0) if data.raw.nil?
+
+      # Handle string integers for Jekyll compatibility
+      data_value = case raw = data.raw
+                   when String
+                     raw.to_i? || 0
+                   when Int32, Int64
+                     raw
+                   else
+                     data.as_i
+                   end
+
       value = args[0]?.try(&.as_i) || 0
-      Liquid::Any.new(data.as_i - value)
+      Liquid::Any.new(data_value - value)
     end
   end
 

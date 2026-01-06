@@ -1,4 +1,6 @@
 require "../carafe"
+require "../liquid_blocks/include"
+require "../liquid_blocks/highlight"
 
 class Carafe::Plugins::CarafeTags < Carafe::Plugin
   def name : String

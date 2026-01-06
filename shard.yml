@@ -14,6 +14,7 @@ license: MIT
 dependencies:
   liquid:
     github: kritoke/liquid.cr
+    branch: feature/for-loop-reversed
   markd:
     github: icyleaf/markd
   tartrazine:

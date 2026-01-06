@@ -4,11 +4,15 @@ module Liquid::Block
   # Jekyll-compatible Include that supports key=value parameters
   # Extends liquid.cr's Include to add Jekyll-style parameter syntax
   class JekyllInclude < Include
-    # Jekyll-style include pattern: {% include file.html key=value key2=value2 %}
-    JEKYLL_INCLUDE = /^include\s+(?<template_name>[\w\-\.\/]+)(?<params>.*)$/
+    # Jekyll-style include pattern: file.html key=value key2=value2
+    # Note: The parser has already stripped the "include" keyword
+    JEKYLL_INCLUDE = /^(?<template_name>[\w\-\.\/]+)(?<params>.*)$/
 
     def initialize(content : String)
       content = content.strip
+
+      # Debug output to help troubleshoot
+      puts "DEBUG: JekyllInclude content = '#{content}'" if ENV["DEBUG_INCLUDE"]?
 
       # Try Jekyll-style parsing first (no quotes, key=value syntax)
       if match = content.match JEKYLL_INCLUDE
@@ -18,7 +22,10 @@ module Liquid::Block
         # Parse key=value parameters
         params_str = match["params"]
         if params_str && !params_str.strip.empty?
-          jekyll_params = /\s*(?<varname>#{VAR})=(?<value>#{TYPE_OR_VAR})/
+          # Parse Jekyll-style key=value parameters
+          # This pattern handles: varname=value (where value can be a variable, string, number)
+          # We scan repeatedly to get all params
+          jekyll_params = /\s*(?<varname>[A-Za-z_]\w*)=(?<value>[^\s]+)/
 
           params_str.scan(jekyll_params) do |param_match|
             varname = param_match["varname"]
@@ -31,8 +38,9 @@ module Liquid::Block
         # Manually parse instead of calling super to avoid issues
         @template_vars = {} of String => Expression
 
-        # Use the parent's INCLUDE pattern
-        if match = content.match(/^include(\s+)(?<template_name>["'][^"']+["'])(\s+with\s+(?<value>#{TYPE_OR_VAR}))?/)
+        # Use a pattern for quoted template names (liquid.cr syntax)
+        # Note: The parser has already stripped the "include" keyword
+        if match = content.match(/^(?<template_name>["'][^"']+["'])(\s+with\s+(?<value>(?:(?:"(?:[^"]|\\")*")|(?:'(?:[^']|\\')*')|(?:[-+]?[0-9]+)|(?:[-!]*(?:[A-Za-z_]\w*)(?:(?:\.[A-Za-z_]\w*)|(?:\[(?:(?:(?:"(?:[^"]|\\")*")|(?:'(?:[^']|\\')*'))|(?:[-+]?[0-9]+)|(?1))\]))*\??))))?/)
           @template_name = match["template_name"].delete("\"").delete("'")
           @template_name += ".liquid" if File.extname(@template_name).empty?
 

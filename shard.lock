@@ -22,7 +22,7 @@ shards:
 
   liquid:
     git: https://github.com/kritoke/liquid.cr.git
-    version: 0.4.1+git.commit.e5f6d865b812c619a5268d67e10978831385fa44
+    version: 0.4.1+git.commit.dca546c998384e023d3864cb9b7f1178e7899b95
 
   markd:
     git: https://github.com/icyleaf/markd.git

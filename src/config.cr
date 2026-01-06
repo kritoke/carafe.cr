@@ -136,6 +136,10 @@ class Carafe::Config
     posts["permalink"] ||= permalink
     # Don't hardcode the layout - let Jekyll's defaults system handle it
     # posts["layout"] ||= "post"
+
+    # Jekyll automatically treats _pages as a collection
+    pages = collections["pages"] ||= Config::Collection.new
+    pages["output"] ||= true
   end
 
   def self.load_file(filename : String) : Config

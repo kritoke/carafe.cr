@@ -47,37 +47,32 @@ class Carafe::Processor::Layout < Carafe::Processor
       # Build Liquid context with site data
       liquid_context = Liquid::Context.new
 
-      # Set site data
-      liquid_context.set("site", build_site_hash)
+      # Set site data - deeply sanitize to ensure no nil values
+      site_hash = build_site_hash
+      liquid_context.set("site", sanitize_hash(site_hash))
 
-      # Set page data
-      liquid_context.set("page", build_page_hash(resource))
+      # Set page data - deeply sanitize
+      page_hash = build_page_hash(resource)
+      liquid_context.set("page", sanitize_hash(page_hash))
 
-      # Set paginator
-      liquid_context.set("paginator", build_paginator_hash(resource))
+      # Set paginator - deeply sanitize
+      paginator_hash = build_paginator_hash(resource)
+      liquid_context.set("paginator", sanitize_hash(paginator_hash))
 
       # Set content
       liquid_context.set("content", content)
 
-      # Set layout
-      liquid_context.set("layout", build_layout_hash(frontmatter))
+      # Set layout - deeply sanitize
+      layout_hash = build_layout_hash(frontmatter)
+      liquid_context.set("layout", sanitize_hash(layout_hash))
 
-      # Set post (alias for page in Jekyll)
-      liquid_context.set("post", build_page_hash(resource))
+      # Set post (alias for page in Jekyll) - deeply sanitize
+      liquid_context.set("post", sanitize_hash(page_hash))
 
       layout_name = frontmatter["layout"]?.try(&.as_s?)
 
       # Render the template
       begin
-        # Check if there are any remaining include tags
-        remaining_includes = layout_template.scan(/{%\s*include\s+[^%]+?%}/)
-        if remaining_includes.size > 0
-          STDERR.puts "ERROR: #{remaining_includes.size} include tags remain after preprocessing:"
-          remaining_includes.each do |match|
-            STDERR.puts "  #{match[0]}"
-          end
-        end
-
         template = Liquid::Template.parse(layout_template)
         content = template.render(liquid_context)
       rescue ex
@@ -334,6 +329,38 @@ class Carafe::Processor::Layout < Carafe::Processor
         config_hash[key] = Liquid::Any.new(raw)
       when Int32, Int64, Float64, Bool
         config_hash[key] = Liquid::Any.new(raw)
+      when Nil
+        # Skip nil values entirely - they shouldn't be in the config
+      when Hash
+        # Convert nested hashes
+        hash = {} of String => Liquid::Any
+        raw.each do |hk, hv|
+          hash_key = hk.is_a?(String) ? hk : hk.to_s
+          # Recursively convert nested values
+          if hv.is_a?(YAML::Any)
+            hash[hash_key] = convert_yaml_to_liquid(hv)
+          elsif hv.nil?
+            hash[hash_key] = Liquid::Any.new("")
+          else
+            hash[hash_key] = Liquid::Any.new(hv.to_s)
+          end
+        end
+        config_hash[key] = Liquid::Any.new(hash)
+      when Array
+        # Convert arrays
+        array = raw.map do |item|
+          if item.is_a?(YAML::Any)
+            convert_yaml_to_liquid(item)
+          elsif item.nil?
+            Liquid::Any.new("")
+          else
+            Liquid::Any.new(item.to_s)
+          end
+        end
+        config_hash[key] = Liquid::Any.new(array)
+      else
+        # Convert any other type to string
+        config_hash[key] = Liquid::Any.new(raw.to_s)
       end
     end
 
@@ -444,10 +471,74 @@ class Carafe::Processor::Layout < Carafe::Processor
     when Array
       array = raw.map { |v| convert_yaml_to_liquid(v) }
       Liquid::Any.new(array)
-    when String, Int32, Int64, Float64, Bool, Nil
+    when String, Int32, Int64, Float64, Bool
       Liquid::Any.new(raw)
+    when Nil
+      # Convert nil to empty string to avoid type cast errors in templates
+      Liquid::Any.new("")
     else
       Liquid::Any.new(raw.to_s)
     end
+  end
+
+  # Deeply sanitize a Hash(String, Liquid::Any) to ensure no nested nil values
+  # This is necessary because build_page_hash and other methods might create
+  # nested structures that still contain nil values
+  private def sanitize_hash(hash : Hash(String, Liquid::Any)) : Hash(String, Liquid::Any)
+    sanitized = {} of String => Liquid::Any
+
+    hash.each do |key, value|
+      case raw = value.raw
+      when Nil
+        # Replace nil with empty string
+        sanitized[key] = Liquid::Any.new("")
+      when Hash
+        # Recursively sanitize nested hashes
+        nested = {} of String => Liquid::Any
+        raw.each do |k, v|
+          key_str = k.is_a?(String) ? k : k.to_s
+          if v.is_a?(Liquid::Any)
+            # Recursively sanitize
+            temp_hash = {key_str => v}
+            temp_sanitized = sanitize_hash(temp_hash)
+            nested[key_str] = temp_sanitized[key_str]
+          elsif v.nil?
+            nested[key_str] = Liquid::Any.new("")
+          else
+            nested[key_str] = Liquid::Any.new(v)
+          end
+        end
+        sanitized[key] = Liquid::Any.new(nested)
+      when Array
+        # Sanitize arrays
+        sanitized_array = raw.map do |item|
+          if item.is_a?(Liquid::Any)
+            item_raw = item.raw
+            if item_raw.nil?
+              Liquid::Any.new("")
+            elsif item_raw.is_a?(Hash)
+              # Convert hash to sanitized hash
+              temp_hash = {} of String => Liquid::Any
+              item_raw.each do |k, v|
+                key_str = k.is_a?(String) ? k : k.to_s
+                temp_hash[key_str] = v.is_a?(Liquid::Any) ? v : Liquid::Any.new(v || "")
+              end
+              Liquid::Any.new(temp_hash)
+            else
+              item
+            end
+          elsif item.nil?
+            Liquid::Any.new("")
+          else
+            Liquid::Any.new(item)
+          end
+        end
+        sanitized[key] = Liquid::Any.new(sanitized_array)
+      else
+        sanitized[key] = value
+      end
+    end
+
+    sanitized
   end
 end

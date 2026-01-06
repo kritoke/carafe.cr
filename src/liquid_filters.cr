@@ -1,7 +1,28 @@
 require "liquid"
+require "markd"
+require "html"
 
 # Jekyll-compatible Liquid filters for carafe
 module Carafe::LiquidFilters
+  # Jekyll's markdownify filter - converts markdown to HTML
+  #
+  # Usage: {{ page.content | markdownify }}
+  class Markdownify
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+
+      # Convert input to string
+      markdown_text = data.as_s
+
+      # Use Markd to convert markdown to HTML
+      html = Markd.to_html(markdown_text)
+
+      Liquid::Any.new(html)
+    end
+  end
+
   # Jekyll's where_exp filter - filters array based on expression
   #
   # Usage: {{ array | where_exp: "item", "item.property == value" }}
@@ -122,6 +143,307 @@ module Carafe::LiquidFilters
     end
   end
 
-  # Register the filter with Liquid
+  # Jekyll's date_to_string filter
+  class DateToString
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      value = data.raw
+      if value.is_a?(Time)
+        Liquid::Any.new(value.to_s("%-d %b %Y"))
+      else
+        data
+      end
+    end
+  end
+
+  # Jekyll's slugify filter
+  class Slugify
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(data.as_s.downcase.gsub(/([^\w_.]+)/, "-"))
+    end
+  end
+
+  # Jekyll's relative_path filter
+  class RelativePath
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(data.as_s)
+    end
+  end
+
+  # Jekyll's relative_url filter
+  class RelativeUrl
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(data.as_s)
+    end
+  end
+
+  # Jekyll's absolute_url filter
+  class AbsoluteUrl
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(data.as_s)
+    end
+  end
+
+  # Jekyll's localize filter (passthrough)
+  class Localize
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      data
+    end
+  end
+
+  # Jekyll's normalize_whitespace filter
+  class NormalizeWhitespace
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(data.as_s.gsub(/\s+/, ' '))
+    end
+  end
+
+  # Jekyll's newline_to_br filter
+  class NewlineToBr
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(data.as_s.gsub(/\n/, "<br />\n"))
+    end
+  end
+
+  # Jekyll's strip_html filter
+  class StripHtml
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(data.as_s.gsub(/<[^>]*>/, ""))
+    end
+  end
+
+  # Jekyll's strip_newlines filter
+  class StripNewlines
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(data.as_s.gsub(/\n[\s]*/, ""))
+    end
+  end
+
+  # Jekyll's truncatewords filter
+  class Truncatewords
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      words = args[0]?.try(&.as_i) || 15
+      Liquid::Any.new(data.as_s.split(/\s+/)[0, words].join(" "))
+    end
+  end
+
+  # Jekyll's strip_index filter
+  class StripIndex
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(data.as_s.sub(%r{/?index\.html?$}, "/"))
+    end
+  end
+
+  # Jekyll's contains filter
+  class Contains
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new(false) if data.raw.nil?
+      return Liquid::Any.new(false) if args.empty?
+      search = args[0].as_s
+      Liquid::Any.new(data.as_s.includes?(search))
+    end
+  end
+
+  # Jekyll's rstrip filter
+  class Rstrip
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(data.as_s.rstrip)
+    end
+  end
+
+  # Jekyll's lstrip filter
+  class Lstrip
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(data.as_s.lstrip)
+    end
+  end
+
+  # Jekyll's strip filter
+  class Strip
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(data.as_s.strip)
+    end
+  end
+
+  # Jekyll's split filter
+  class Split
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new([] of Liquid::Any) if data.raw.nil?
+      pattern = args[0]?.try(&.as_s) || " "
+      array = data.as_s.split(pattern).map { |s| Liquid::Any.new(s) }
+      Liquid::Any.new(array)
+    end
+  end
+
+  # Jekyll's times filter
+  class Times
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      count = args[0]?.try(&.as_i) || 1
+      return Liquid::Any.new("") if count <= 0
+      Liquid::Any.new(data.as_s * count)
+    end
+  end
+
+  # Jekyll's slice filter
+  class Slice
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      start = args[0]?.try(&.as_i) || 0
+      length = args[1]?.try(&.as_i) || 1
+      str = data.as_s
+      return Liquid::Any.new("") if start < 0 || start >= str.size
+      Liquid::Any.new(str[start, length])
+    end
+  end
+
+  # Jekyll's minus filter
+  class Minus
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new(0) if data.raw.nil?
+      value = args[0]?.try(&.as_i) || 0
+      Liquid::Any.new(data.as_i - value)
+    end
+  end
+
+  # Jekyll's escape_once filter
+  class EscapeOnce
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      Liquid::Any.new(HTML.escape(data.as_s))
+    end
+  end
+
+  # Jekyll's striptags filter
+  class Striptags
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      return Liquid::Any.new("") if data.raw.nil?
+      str = data.as_s
+      return Liquid::Any.new("") if str.empty?
+      begin
+        Liquid::Any.new(str.gsub(/<[^>]*>/, "").gsub(/\s+/, " ").strip)
+      rescue
+        Liquid::Any.new(str)
+      end
+    end
+  end
+
+  # Jekyll's xml_escape filter
+  class XmlEscape
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      Liquid::Any.new(HTML.escape(data.as_s))
+    end
+  end
+
+  # Jekyll's date_to_xmlschema filter
+  class DateToXmlschema
+    extend Liquid::Filters::Filter
+
+    def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+      time = if data.raw.is_a?(Time)
+                data.raw.as(Time)
+              elsif data.raw.is_a?(String)
+                date_str = data.as_s
+                begin
+                  Time.parse_rfc3339(date_str)
+                rescue
+                  begin
+                    Time.parse_iso8601(date_str)
+                  rescue
+                    Time.parse(date_str, "%Y-%m-%d", Time::Location.local)
+                  end
+                end
+              else
+                Time.local
+              end
+      Liquid::Any.new(time.to_rfc3339)
+    end
+  end
+
+  # Register all filters with Liquid
+  Liquid::Filters::FilterRegister.register "markdownify", Carafe::LiquidFilters::Markdownify
   Liquid::Filters::FilterRegister.register "where_exp", Carafe::LiquidFilters::WhereExp
+  Liquid::Filters::FilterRegister.register "date_to_string", Carafe::LiquidFilters::DateToString
+  Liquid::Filters::FilterRegister.register "slugify", Carafe::LiquidFilters::Slugify
+  Liquid::Filters::FilterRegister.register "relative_path", Carafe::LiquidFilters::RelativePath
+  Liquid::Filters::FilterRegister.register "relative_url", Carafe::LiquidFilters::RelativeUrl
+  Liquid::Filters::FilterRegister.register "absolute_url", Carafe::LiquidFilters::AbsoluteUrl
+  Liquid::Filters::FilterRegister.register "localize", Carafe::LiquidFilters::Localize
+  Liquid::Filters::FilterRegister.register "normalize_whitespace", Carafe::LiquidFilters::NormalizeWhitespace
+  Liquid::Filters::FilterRegister.register "newline_to_br", Carafe::LiquidFilters::NewlineToBr
+  Liquid::Filters::FilterRegister.register "strip_html", Carafe::LiquidFilters::StripHtml
+  Liquid::Filters::FilterRegister.register "strip_newlines", Carafe::LiquidFilters::StripNewlines
+  Liquid::Filters::FilterRegister.register "truncatewords", Carafe::LiquidFilters::Truncatewords
+  Liquid::Filters::FilterRegister.register "strip_index", Carafe::LiquidFilters::StripIndex
+  Liquid::Filters::FilterRegister.register "contains", Carafe::LiquidFilters::Contains
+  Liquid::Filters::FilterRegister.register "rstrip", Carafe::LiquidFilters::Rstrip
+  Liquid::Filters::FilterRegister.register "lstrip", Carafe::LiquidFilters::Lstrip
+  Liquid::Filters::FilterRegister.register "strip", Carafe::LiquidFilters::Strip
+  Liquid::Filters::FilterRegister.register "split", Carafe::LiquidFilters::Split
+  Liquid::Filters::FilterRegister.register "times", Carafe::LiquidFilters::Times
+  Liquid::Filters::FilterRegister.register "slice", Carafe::LiquidFilters::Slice
+  Liquid::Filters::FilterRegister.register "minus", Carafe::LiquidFilters::Minus
+  Liquid::Filters::FilterRegister.register "escape_once", Carafe::LiquidFilters::EscapeOnce
+  Liquid::Filters::FilterRegister.register "striptags", Carafe::LiquidFilters::Striptags
+  Liquid::Filters::FilterRegister.register "xml_escape", Carafe::LiquidFilters::XmlEscape
+  Liquid::Filters::FilterRegister.register "date_to_xmlschema", Carafe::LiquidFilters::DateToXmlschema
 end

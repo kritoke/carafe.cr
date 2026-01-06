@@ -1,14 +1,11 @@
 require "./site"
 require "uri"
-require "crinja"
 require "./generator"
 require "./frontmatter"
 require "./paginator"
 require "./ext/string"
 
-@[::Crinja::Attributes(expose: [:slug, :directory, :content, :paginator, :categories, :title, :date, :permalink, :url])]
 class Carafe::Resource
-  include ::Crinja::Object::Auto
   include Comparable(Resource)
 
   getter slug : String
@@ -48,27 +45,22 @@ class Carafe::Resource
     @frontmatter.has_key?(key) || defaults.has_key?(key) || @collection.try(&.defaults.has_key?(key)) || false
   end
 
-  @[Crinja::Attribute]
   def title : String?
     self["title"]?.try &.to_s
   end
 
-  @[Crinja::Attribute]
   def name : String
     File.basename(@slug)
   end
 
-  @[Crinja::Attribute]
   def basename : String
     File.basename(@slug, File.extname(@slug))
   end
 
-  @[Crinja::Attribute]
   def extname : String
     File.extname(@slug)
   end
 
-  @[Crinja::Attribute]
   getter date : Time do
     if date = self["date"]?
       case raw = date.raw
@@ -136,7 +128,6 @@ class Carafe::Resource
     URI.parse(path)
   end
 
-  @[Crinja::Attribute]
   def permalink : String
     if permalink = self["permalink"]?
       permalink = permalink.as_s
@@ -149,44 +140,6 @@ class Carafe::Resource
     dir = File.expand_path(File.dirname(@slug), "/")
 
     File.expand_path("#{basename}#{output_ext}", dir)
-  end
-
-  def crinja_attribute(value : Crinja::Value) : Crinja::Value
-    case value.to_string
-    when "url"
-      return Crinja::Value.new(url.try(&.to_s) || "")
-    when "date"
-      return Crinja::Value.new(date)
-    when "paginator"
-      # Return default paginator if none set
-      paginator = self.paginator
-      if paginator
-        return Crinja::Value.new(paginator)
-      else
-        # Return an empty paginator with default values
-        return Crinja::Value.new({
-          "page" => 1,
-          "per_page" => 0,
-          "total_pages" => 1,
-          "total_items" => 0,
-          "previous_page" => nil,
-          "previous_page_path" => "",
-          "next_page" => nil,
-          "next_page_path" => "",
-        })
-      end
-    end
-
-    result = super
-
-    if result.undefined?
-      key = value.to_string
-      if val = self[key]?
-        return Config.yaml_to_crinja(val)
-      end
-    end
-
-    result
   end
 
   getter categories : Array(String) do

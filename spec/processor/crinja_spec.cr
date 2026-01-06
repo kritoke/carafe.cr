@@ -2,14 +2,14 @@ require "spec"
 require "../../src/processor/crinja"
 
 private def run_processor(resource, template, site = Carafe::Site.new)
-  processor = Carafe::Processor::Crinja.new(site)
+  processor = Carafe::Processor::Liquid.new(site)
 
   String.build do |io|
     processor.process(resource, IO::Memory.new(template), io)
   end
 end
 
-describe Carafe::Processor::Crinja do
+describe Carafe::Processor::Liquid do
   it "renders crinja template" do
     resource = Carafe::Resource.new(nil, "foo.md")
 
@@ -41,7 +41,7 @@ describe Carafe::Processor::Crinja do
   end
 
   it "loads from includes dir" do
-    processor = Carafe::Processor::Crinja.new(site_dir: "spec/fixtures/simple-site")
+    processor = Carafe::Processor::Liquid.new(site_dir: "spec/fixtures/simple-site")
     processor.process(Carafe::Resource.new(nil, "foo.md"), "{% include foo.html %}").should eq "FOO included"
   end
 end

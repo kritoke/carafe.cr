@@ -1,5 +1,4 @@
 require "../carafe"
-require "crinja"
 
 class Carafe::Plugins::CarafeTags < Carafe::Plugin
   def name : String

@@ -1,4 +1,5 @@
-require "./crinja_lib"
+# Crinja removed - using Liquid only for templating
+
 require "./config"
 require "./site"
 # require "./entry"

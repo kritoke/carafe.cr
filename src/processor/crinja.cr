@@ -28,16 +28,17 @@ class Carafe::Processor::Crinja < Carafe::Processor
     # Create Liquid context
     liquid_context = Liquid::Context.new
 
-    # Set site data - pass Hash(String, Liquid::Any) directly
-    # Context.set will wrap it in Liquid::Any.new() for us
+    # Set site data - deeply sanitize to ensure no nil values
     site_hash = build_simple_site_hash()
-    liquid_context.set("site", site_hash)
+    liquid_context.set("site", sanitize_hash(site_hash))
 
-    # Set page data
-    liquid_context.set("page", build_simple_page_hash(resource))
+    # Set page data - deeply sanitize
+    page_hash = build_simple_page_hash(resource)
+    liquid_context.set("page", sanitize_hash(page_hash))
 
-    # Set paginator data
-    liquid_context.set("paginator", build_simple_paginator_hash(resource))
+    # Set paginator data - deeply sanitize
+    paginator_hash = build_simple_paginator_hash(resource)
+    liquid_context.set("paginator", sanitize_hash(paginator_hash))
 
     io = IO::Memory.new
     template.render(liquid_context, io)
@@ -152,5 +153,64 @@ class Carafe::Processor::Crinja < Carafe::Processor
     end
 
     paginator_hash
+  end
+
+  # Deeply sanitize a Hash(String, Liquid::Any) to ensure no nested nil values
+  private def sanitize_hash(hash : Hash(String, Liquid::Any)) : Hash(String, Liquid::Any)
+    sanitized = {} of String => Liquid::Any
+
+    hash.each do |key, value|
+      case raw = value.raw
+      when Nil
+        # Replace nil with empty string
+        sanitized[key] = Liquid::Any.new("")
+      when Hash
+        # Recursively sanitize nested hashes
+        nested = {} of String => Liquid::Any
+        raw.each do |k, v|
+          key_str = k.is_a?(String) ? k : k.to_s
+          if v.is_a?(Liquid::Any)
+            # Recursively sanitize
+            temp_hash = {key_str => v}
+            temp_sanitized = sanitize_hash(temp_hash)
+            nested[key_str] = temp_sanitized[key_str]
+          elsif v.nil?
+            nested[key_str] = Liquid::Any.new("")
+          else
+            nested[key_str] = Liquid::Any.new(v)
+          end
+        end
+        sanitized[key] = Liquid::Any.new(nested)
+      when Array
+        # Sanitize arrays
+        sanitized_array = raw.map do |item|
+          if item.is_a?(Liquid::Any)
+            item_raw = item.raw
+            if item_raw.nil?
+              Liquid::Any.new("")
+            elsif item_raw.is_a?(Hash)
+              # Convert hash to sanitized hash
+              temp_hash = {} of String => Liquid::Any
+              item_raw.each do |k, v|
+                key_str = k.is_a?(String) ? k : k.to_s
+                temp_hash[key_str] = v.is_a?(Liquid::Any) ? v : Liquid::Any.new(v || "")
+              end
+              Liquid::Any.new(temp_hash)
+            else
+              item
+            end
+          elsif item.nil?
+            Liquid::Any.new("")
+          else
+            Liquid::Any.new(item)
+          end
+        end
+        sanitized[key] = Liquid::Any.new(sanitized_array)
+      else
+        sanitized[key] = value
+      end
+    end
+
+    sanitized
   end
 end

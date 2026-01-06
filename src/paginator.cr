@@ -1,6 +1,4 @@
 class Carafe::Paginator
-  include Crinja::Object::Auto
-
   getter items : Array(Resource)
 
   getter index : Int32

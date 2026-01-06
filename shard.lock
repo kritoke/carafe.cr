@@ -2,7 +2,7 @@ version: 2.0
 shards:
   ameba:
     git: https://github.com/crystal-ameba/ameba.git
-    version: 1.7.0-dev+git.commit.ee0c949be8d7b296ffe7e5155b5177093527c15f
+    version: 1.7.0-dev+git.commit.94ff379e8f3b5677944ab9a97a01aebcfadc2fc1
 
   baked_file_system:
     git: https://github.com/ralsina/baked_file_system.git
@@ -16,17 +16,13 @@ shards:
     git: https://github.com/naqvis/crimage.git
     version: 1.0.2+git.commit.0bab3ccf53a6a4e9a6da3a13411bdfc5e930556d
 
-  crinja:
-    git: https://github.com/straight-shoota/crinja.git
-    version: 0.8.1+git.commit.8231d59435e80d3dc1dad600b33d11d886cb34aa
-
   docopt:
     git: https://github.com/ralsina/docopt.cr.git
     version: 0.3.1
 
   liquid:
     git: https://github.com/kritoke/liquid.cr.git
-    version: 0.4.1+git.commit.50fff24fed7de1dec0bfb4be01678dcc7cdb157e
+    version: 0.4.1+git.commit.e5f6d865b812c619a5268d67e10978831385fa44
 
   markd:
     git: https://github.com/icyleaf/markd.git

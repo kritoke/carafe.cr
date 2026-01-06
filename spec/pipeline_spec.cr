@@ -5,7 +5,7 @@ describe Carafe::Pipeline do
   it "#pipe" do
     site = Carafe::Site.new
     processors = [
-      Carafe::Processor::Crinja.new(site),
+      Carafe::Processor::Liquid.new(site),
       Carafe::Processor::Markdown.new(site),
     ]
     pipeline = Carafe::Pipeline.new processors
@@ -30,7 +30,7 @@ describe Carafe::Pipeline::Builder do
       Carafe::Processor::Layout,
     ]
     builder.create_pipeline("jinja.markdown").processors.map(&.class).should eq [
-      Carafe::Processor::Crinja,
+      Carafe::Processor::Liquid,
       Carafe::Processor::Markdown,
       Carafe::Processor::Layout,
     ]
@@ -39,7 +39,7 @@ describe Carafe::Pipeline::Builder do
       Carafe::Processor::Layout,
     ]
     builder.create_pipeline("jinja.html").processors.map(&.class).should eq [
-      Carafe::Processor::Crinja,
+      Carafe::Processor::Liquid,
       Carafe::Processor::Layout,
     ]
   end
@@ -49,7 +49,7 @@ describe Carafe::Pipeline::Builder do
     builder = Carafe::Pipeline::Builder.new(site)
 
     resource = Carafe::Resource.new(site, "sample.md", "Foo **{{ page }}**")
-    builder.format_for(resource).should eq "crinja.markdown"
+    builder.format_for(resource).should eq "liquid.markdown"
   end
 
   it "#format_for_filename" do

@@ -1,4 +1,5 @@
 require "liquid"
+require "liquid/context"
 require "tartrazine"
 
 module Liquid::Block

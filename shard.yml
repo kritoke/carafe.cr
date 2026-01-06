@@ -14,10 +14,6 @@ license: MIT
 dependencies:
   liquid:
     github: kritoke/liquid.cr
-    branch: master
-  crinja:
-    github: straight-shoota/crinja
-    branch: master
   markd:
     github: icyleaf/markd
   tartrazine:

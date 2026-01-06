@@ -92,7 +92,7 @@ struct Carafe::Pipeline
     def format_for(resource : Resource) : String
       ext = format_for_filename(resource.slug)
 
-      "crinja.#{ext}"
+      "liquid.#{ext}"
     end
 
     def pipeline_for(resource : Resource) : Pipeline

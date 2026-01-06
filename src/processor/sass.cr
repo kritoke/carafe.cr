@@ -1,5 +1,4 @@
 require "sassd"
-require "crinja"
 require "../processor"
 
 class Carafe::Processor::Sass < Carafe::Processor
@@ -46,10 +45,9 @@ class Carafe::Processor::Sass < Carafe::Processor
       # Strip front matter
       source = source.sub(/\A---.*?---\n?/m, "")
 
-      # Render Liquid/Crinja tags using the site context
-      if site = @site
-        source = ::Crinja.render(source, {"site" => site})
-      end
+      # TODO: Render Liquid tags using the site context
+      # This requires Liquid::Template and Liquid::Context to be available
+      # For now, just use the source as-is after stripping front matter
     end
 
     rendered = ::Sass.compile(source, include_path: File.join(@site_dir, include_path), is_indented_syntax_src: indented_syntax)

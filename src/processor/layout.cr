@@ -1,5 +1,6 @@
 require "liquid"
 require "../processor"
+require "../liquid/filters/jekyll"
 
 class Carafe::Processor::Layout < Carafe::Processor
   transforms "*": "output"
@@ -50,6 +51,11 @@ class Carafe::Processor::Layout < Carafe::Processor
       # Set site data - deeply sanitize to ensure no nil values
       site_hash = build_site_hash
       liquid_context.set("site", sanitize_hash(site_hash))
+
+      # Set site URL for absolute_url filter
+      if site_url = @site.config["url"]?.try(&.as_s)
+        Liquid::Filters::AbsoluteUrl.site_url = site_url
+      end
 
       # Set page data - deeply sanitize
       page_hash = build_page_hash(resource)
@@ -295,6 +301,7 @@ class Carafe::Processor::Layout < Carafe::Processor
     site_hash["data"] = build_data_hash
     site_hash["locale"] = Liquid::Any.new(@site.config["locale"]?.try(&.as_s) || "en")
     site_hash["title"] = Liquid::Any.new(@site.config["title"]?.try(&.as_s) || "Site")
+    site_hash["name"] = Liquid::Any.new(@site.config["name"]?.try(&.as_s) || @site.config["title"]?.try(&.as_s) || "Site")
     site_hash["title_separator"] = Liquid::Any.new(@site.config["title_separator"]?.try(&.as_s) || "|")
     site_hash["baseurl"] = Liquid::Any.new(@site.config["baseurl"]?.try(&.as_s) || "")
     site_hash["url"] = Liquid::Any.new(@site.config["url"]?.try(&.as_s) || "")
@@ -482,6 +489,11 @@ class Carafe::Processor::Layout < Carafe::Processor
     # Get URL from resource
     url = resource.url.try(&.to_s) || ""
     path = resource.slug || ""
+
+    # For index.html files, normalize the URL to "/"
+    if url.ends_with?("/index.html") || url == "/index.html"
+      url = "/"
+    end
 
     page_hash["url"] = Liquid::Any.new(url)
     page_hash["path"] = Liquid::Any.new(path)

@@ -95,6 +95,9 @@ class Carafe::Processor::Layout < Carafe::Processor
   # Process Jekyll-style includes by reading the file and inserting its content
   # Supports: {% include file.html %} and {% include file.html param=value %}
   # Recursively processes nested includes
+  # NOTE: Includes with parameters (e.g., {% include file.html param=value %})
+  # are NOT processed here - they are handled by the JekyllInclude tag during
+  # Liquid rendering to properly support parameter passing.
   private def process_includes(template : String, resource : Resource) : String
     includes_dir = File.join(@site.site_dir, @site.config.includes_dir)
     max_iterations = 100 # Prevent infinite loops
@@ -109,51 +112,53 @@ class Carafe::Processor::Layout < Carafe::Processor
       match_count_before = template.scan(/{%\s*include\s+[^%]+?%}/).size
       template = template.gsub(/{%\s*include\s+([^%]+?)%}/) do |_match|
         include_content = $1
-        # Extract just the filename (first word, before any space or parameter)
-        # Handle quoted filenames and filenames with paths
-        file = include_content.split(/\s+/).first
 
-        # Remove quotes if present
-        file = file.delete('"')
-
-        # Remove leading slash if present (e.g., /comments-providers/disqus.html)
-        file = file.lstrip('/')
-
-        # Try to find the include file
-        # Check in site's _includes directory
-        include_path = File.join(includes_dir, file)
-
-        # Also check in theme's _includes directory
-        unless File.exists?(include_path)
-          theme_dir = @site.config["theme_dir"]?.try(&.as_s?)
-          if theme_dir
-            theme_include_path = File.join(theme_dir, "_includes", file)
-            include_path = theme_include_path if File.exists?(theme_include_path)
-          end
-        end
-
-        if File.exists?(include_path)
-          # Read and return the file content
-          # This content may contain more includes, which will be processed in the next iteration
-          include_content = File.read(include_path)
-
-          # Remove self-referential includes to prevent infinite loops
-          # If toc.html contains "{% include toc.html %}", remove it
-          include_content = include_content.gsub(/{%\s*include\s+#{Regex.escape(file)}\b[^%]*%}/, "<!-- Self-include removed: #{file} -->")
-
-          # Preprocess to remove Jekyll-specific for loop modifiers that Liquid doesn't support
-          include_content = preprocess_jekyll_syntax(include_content)
-
-          # Debug: check if limit: still exists after preprocessing
-          if include_content.includes?("limit:")
-            STDERR.puts "DEBUG: After preprocessing #{file}, still contains 'limit:'"
-          end
-
-          include_content
+        # Check if this include has parameters (contains "=" after whitespace)
+        # If so, skip processing it here - let JekyllInclude handle it
+        if include_content =~ /\s+[A-Za-z_]\w*=/
+          # Return the original include tag unchanged
+          "{% include #{include_content}%}"
         else
-          # If file not found, replace with empty comment to avoid Liquid parse errors
-          STDERR.puts "DEBUG: Include file not found: #{file} (tried: #{include_path})"
-          "<!-- Include not found: #{file} -->"
+          # Extract just the filename (first word, before any space or parameter)
+          # Handle quoted filenames and filenames with paths
+          file = include_content.split(/\s+/).first
+
+          # Remove quotes if present
+          file = file.delete('"')
+
+          # Remove leading slash if present (e.g., /comments-providers/disqus.html)
+          file = file.lstrip('/')
+
+          # Try to find the include file
+          # Check in site's _includes directory
+          include_path = File.join(includes_dir, file)
+
+          # Also check in theme's _includes directory
+          unless File.exists?(include_path)
+            theme_dir = @site.config["theme_dir"]?.try(&.as_s?)
+            if theme_dir
+              theme_include_path = File.join(theme_dir, "_includes", file)
+              include_path = theme_include_path if File.exists?(theme_include_path)
+            end
+          end
+
+          if File.exists?(include_path)
+            # Read and return the file content
+            # This content may contain more includes, which will be processed in the next iteration
+            include_content = File.read(include_path)
+
+            # Remove self-referential includes to prevent infinite loops
+            # If toc.html contains "{% include toc.html %}", remove it
+            include_content = include_content.gsub(/{%\s*include\s+#{Regex.escape(file)}\b[^%]*%}/, "<!-- Self-include removed: #{file} -->")
+
+            # Preprocess to remove Jekyll-specific for loop modifiers that Liquid doesn't support
+            include_content = preprocess_jekyll_syntax(include_content)
+
+            include_content
+          else
+            # If file not found, replace with empty comment to avoid Liquid parse errors
+            "<!-- Include not found: #{file} -->"
+          end
         end
       end
       match_count_after = template.scan(/{%\s*include\s+[^%]+?%}/).size
@@ -172,6 +177,7 @@ class Carafe::Processor::Layout < Carafe::Processor
   # - for loop modifiers: offset, limit, reversed
   # - for loops with variable ranges (not supported by Liquid)
   # - {% continue %} tag (not supported by Liquid)
+  # - where_exp, sort, and reverse filters (not supported by Liquid)
   private def preprocess_jekyll_syntax(template : String) : String
 
     # Remove Jekyll for loop modifiers
@@ -193,6 +199,21 @@ class Carafe::Processor::Layout < Carafe::Processor
     if template != original_template && template.includes?("limit:")
       STDERR.puts "WARNING: preprocess_jekyll_syntax failed to remove all limit modifiers"
     end
+
+    # Remove where_exp, sort, and reverse filters from assign statements
+    # These filters are not supported by Liquid, but we already sort posts correctly
+    # in build_site_hash, so removing them is safe
+    # IMPORTANT: Must preserve the closing %} or the assign statement will be invalid
+    template = template.gsub(/\|\s*where_exp:\s*"[^"]*"\s*,\s*"[^"]*"(\s*%})/, "\\1")
+    template = template.gsub(/\|\s*sort:\s*"[^"]*"(\s*%})/, "\\1")
+    template = template.gsub(/\|\s*reverse(\s*%})/, "\\1")
+
+    # Clean up any double pipes
+    template = template.gsub(/\|\s*\|/, "|")
+
+    # Clean up trailing pipes before closing brace (but only if there's nothing after the pipe)
+    # Pattern: | %}  or  | %}
+    template = template.gsub(/\|\s*(%})/, "\\1")
 
     # Replace for loops with variable ranges with a fixed range (1..1)
     # Jekyll: {% for i in (page_start..page_end) %}...{% endfor %}
@@ -300,6 +321,81 @@ class Carafe::Processor::Layout < Carafe::Processor
       collections_array << Liquid::Any.new(collection_hash)
     end
     site_hash["collections"] = Liquid::Any.new(collections_array)
+
+    # Aggregate tags from all resources across all collections
+    tags_hash = Hash(String, Array(Liquid::Any)).new
+    @site.collections.each do |name, collection|
+      collection.resources.each do |r|
+        # Get tags from resource frontmatter
+        if tags_value = r["tags"]?
+          # Convert resource to Liquid::Any hash
+          resource_hash = {} of String => Liquid::Any
+          resource_hash["url"] = Liquid::Any.new(r.url.try(&.to_s) || "")
+          resource_hash["title"] = Liquid::Any.new(r["title"]?.try(&.as_s) || "")
+          resource_hash["date"] = Liquid::Any.new(r.date.to_s)
+          resource_hash["slug"] = Liquid::Any.new(r.slug)
+          resource_hash["collection"] = Liquid::Any.new(name)
+
+          # Handle tags as array or string (Jekyll supports both)
+          tags_list = if tags_value.is_a?(YAML::Any)
+                        if tags_array = tags_value.as_a?
+                          tags_array.map(&.as_s)
+                        elsif tags_string = tags_value.as_s?
+                          # Split by comma or space
+                          tags_string.split(/[,\s]+/).map(&.strip).reject(&.empty?)
+                        else
+                          [] of String
+                        end
+                      else
+                        [] of String
+                      end
+
+          # Add resource to each tag's array
+          tags_list.each do |tag_name|
+            tags_hash[tag_name] ||= [] of Liquid::Any
+            tags_hash[tag_name] << Liquid::Any.new(resource_hash)
+          end
+        end
+      end
+    end
+
+    # Convert tags_hash to Liquid::Any format
+    # Jekyll's site.tags is an array of [tag_name, posts_array] pairs, not a hash
+    tags_array = [] of Liquid::Any
+    tags_hash.each do |tag_name, resources|
+      # Create [tag_name, resources] pair as Liquid::Any array
+      tag_pair = [] of Liquid::Any
+      tag_pair << Liquid::Any.new(tag_name)
+      tag_pair << Liquid::Any.new(resources)
+      tags_array << Liquid::Any.new(tag_pair)
+    end
+    site_hash["tags"] = Liquid::Any.new(tags_array)
+
+    # Add posts collection as site.posts (Jekyll compatibility)
+    # site.posts is an alias for the 'posts' collection resources in reverse chronological order
+    posts_array = [] of Liquid::Any
+    if posts_collection = @site.collections["posts"]?
+      # Sort posts by date (newest first)
+      sorted_posts = posts_collection.resources.sort_by { |r| r.date }.reverse
+
+      sorted_posts.each do |post|
+        post_hash = {} of String => Liquid::Any
+        post_hash["url"] = Liquid::Any.new(post.url.try(&.to_s) || "")
+        post_hash["title"] = Liquid::Any.new(post["title"]?.try(&.as_s) || "")
+        post_hash["date"] = Liquid::Any.new(post.date.to_s)
+        post_hash["slug"] = Liquid::Any.new(post.slug)
+        post_hash["excerpt"] = Liquid::Any.new(post["excerpt"]?.try(&.as_s) || "")
+        post_hash["content"] = Liquid::Any.new(post.content || "")
+
+        # Add all frontmatter data
+        post.frontmatter.each do |k, v|
+          post_hash[k.to_s] = convert_yaml_to_liquid(v)
+        end
+
+        posts_array << Liquid::Any.new(post_hash)
+      end
+    end
+    site_hash["posts"] = Liquid::Any.new(posts_array)
 
     site_hash
   end

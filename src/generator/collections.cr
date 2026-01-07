@@ -50,6 +50,7 @@ class Carafe::Generator::Collections < Carafe::Generator::Files
         defaults = site.defaults_for(slug, collection_name)
         resource = Carafe::Resource.new(site, slug, content, collection_path, frontmatter, defaults: defaults)
         resource.collection = collection
+        resource.url = Carafe::Resource.url_for(resource)
         collection.resources << resource
       end
     end

@@ -40,7 +40,7 @@ class Carafe::Server
 
       resource = nil
       if path.empty? || path == "/"
-        resource = @site.find("/")
+        resource = @site.find("/") || @site.find("/index.html")
       elsif path.ends_with?('/')
         resource = @site.find(path)
         if resource.nil?

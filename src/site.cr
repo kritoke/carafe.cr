@@ -126,6 +126,7 @@ class Carafe::Site
 
   def register(resource : Resource)
     resource.output_ext = pipeline_builder.output_ext_for(resource)
-    resource.url = Resource.url_for(resource)
+    # Don't set URL yet - it will be set after collection is assigned
+    # resource.url = Resource.url_for(resource)
   end
 end

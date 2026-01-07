@@ -98,37 +98,24 @@ class Carafe::Resource
   end
 
   def self.url_for(resource : Resource) : URI
-    permalink = resource["permalink"]?
-    if permalink
-      path = resource.expand_permalink(permalink.as_s)
-    else
-      path = String.build do |io|
-        io << '/'
-        dirname = File.dirname(resource.slug)
-        if dirname != "."
-          io << dirname
-          io << '/'
-        end
+    # Use the permalink to generate the URL
+    # This ensures the URL matches the output file path
+    permalink_val = resource.permalink
 
-        basename = resource.basename
-        if basename != "index"
-          io << basename
-          output_ext = resource.output_ext
-          if output_ext != ".html"
-            io << resource.output_ext
-          end
-        end
-      end
+    # Expand the permalink to get the actual path
+    path = resource.expand_permalink(permalink_val)
+
+    # If the path doesn't have an extension and isn't a directory, add .html
+    if !path.ends_with?('/') && File.extname(path).empty?
+      path += ".html"
     end
-
-    # base = @site.url
-    # scheme = self["scheme"]
-    # domain = self["domain"]
 
     URI.parse(path)
   end
 
   def permalink : String
+    # Return the permalink template for output_path
+    # Check for resource-specific permalink in frontmatter
     if permalink = self["permalink"]?
       permalink = permalink.as_s
       unless permalink.starts_with?('/')
@@ -137,6 +124,29 @@ class Carafe::Resource
       return permalink
     end
 
+    # Check defaults for permalink (includes collection defaults)
+    if permalink = defaults["permalink"]?
+      permalink = permalink.as_s
+      unless permalink.starts_with?('/')
+        permalink = "/#{permalink}"
+      end
+      return permalink
+    end
+
+    # Check collection defaults for permalink
+    if coll = collection
+      if coll_permalink = coll.defaults["permalink"]?
+        permalink = coll_permalink.as_s
+        unless permalink.starts_with?('/')
+          permalink = "/#{permalink}"
+        end
+        return permalink
+      end
+    end
+
+    # For posts without custom permalink, this returns a file path based on slug
+    # output_path will expand this, which for posts with date-prefix filenames
+    # will extract the date and title parts
     dir = File.expand_path(File.dirname(@slug), "/")
 
     File.expand_path("#{basename}#{output_ext}", dir)

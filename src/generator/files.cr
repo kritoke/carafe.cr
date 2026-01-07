@@ -9,6 +9,7 @@ class Carafe::Generator::Files < Carafe::Generator
     Files.load_files(File.join(search_path, "**/*"), search_path, excludes: site.config.exclude, includes: site.config.include) do |slug, content, frontmatter|
       defaults = site.defaults_for(slug, "pages")
       resource = Carafe::Resource.new(site, slug, content, frontmatter: frontmatter, defaults: defaults)
+      resource.url = Carafe::Resource.url_for(resource)
 
       site.files << resource
     end

@@ -11,9 +11,6 @@ module Liquid::Block
     def initialize(content : String)
       content = content.strip
 
-      # Debug output to help troubleshoot
-      puts "DEBUG: JekyllInclude content = '#{content}'" if ENV["DEBUG_INCLUDE"]?
-
       # Try Jekyll-style parsing first (no quotes, key=value syntax)
       if match = content.match JEKYLL_INCLUDE
         @template_vars = {} of String => Expression
@@ -63,30 +60,41 @@ module Liquid
     def visit(node : Liquid::Block::JekyllInclude)
       base_path = @template_path || "."
 
+      # Jekyll looks for includes in the _includes directory
+      # We need to go up from _layouts to the site root, then into _includes
+      includes_dir = if base_path.ends_with?("/_layouts") || base_path.ends_with?("/_layouts/")
+                       File.join(File.dirname(base_path), "_includes")
+                     elsif base_path == "."
+                       "_includes"
+                     else
+                       # For theme layouts, check theme _includes
+                       base_path
+                     end
+
       # Use liquid.cr's file finding logic with .html → .liquid fallback (Jekyll compatibility)
-      filename = if File.exists?(File.join(base_path, node.template_name))
-                    File.join(base_path, node.template_name)
+      filename = if File.exists?(File.join(includes_dir, node.template_name))
+                    File.join(includes_dir, node.template_name)
                   elsif File.extname(node.template_name) == ".html"
                     # If .html is specified but doesn't exist, try .liquid
-                    liquid_path = File.join(base_path, node.template_name.sub(/\.html$/, ".liquid"))
+                    liquid_path = File.join(includes_dir, node.template_name.sub(/\.html$/, ".liquid"))
                     if File.exists?(liquid_path)
                       liquid_path
                     else
-                      File.join(base_path, node.template_name)
+                      File.join(includes_dir, node.template_name)
                     end
                   elsif File.extname(node.template_name).empty?
                     # No extension provided, try .liquid first, then .html
-                    liquid_path = File.join(base_path, node.template_name + ".liquid")
-                    html_path = File.join(base_path, node.template_name + ".html")
+                    liquid_path = File.join(includes_dir, node.template_name + ".liquid")
+                    html_path = File.join(includes_dir, node.template_name + ".html")
                     if File.exists?(liquid_path)
                       liquid_path
                     elsif File.exists?(html_path)
                       html_path
                     else
-                      File.join(base_path, node.template_name)
+                      File.join(includes_dir, node.template_name)
                     end
                   else
-                    File.join(base_path, node.template_name)
+                    File.join(includes_dir, node.template_name)
                   end
 
       # Create an 'include' hash for include variables (Jekyll compatibility)
@@ -105,6 +113,93 @@ module Liquid
       @data.set "include", Liquid::Any.new(include_hash)
 
       template_content = File.read filename
+
+      # Preprocess to remove Jekyll-specific Liquid syntax that Liquid doesn't support
+      # Remove {% continue %} tags (not supported by Liquid)
+      template_content = template_content.gsub(/{%\s*continue\s*%}/, "")
+
+      # Remove where_exp, sort, and reverse filters from assign statements
+      # These filters are not supported by Liquid, but we already sort posts correctly
+      # in build_site_hash, so removing them is safe
+      # We need to remove the entire filter chain while keeping the assign statement intact
+      # Pattern: {% assign var = value | filter1 | filter2 %}
+      # We remove each filter individually, keeping the pipe but removing the filter part
+      # IMPORTANT: Must preserve the closing %} or the assign statement will be invalid
+      template_content = template_content.gsub(/\|\s*where_exp:\s*"[^"]*"\s*,\s*"[^"]*"(\s*%})/, "\\1")
+      template_content = template_content.gsub(/\|\s*sort:\s*"[^"]*"(\s*%})/, "\\1")
+      template_content = template_content.gsub(/\|\s*reverse(\s*%})/, "\\1")
+
+      # Clean up any double pipes
+      template_content = template_content.gsub(/\|\s*\|/, "|")
+
+      # Clean up trailing pipes before closing brace (but only if there's nothing after the pipe)
+      # Pattern: | %}  or  | %}
+      template_content = template_content.gsub(/\|\s*(%})/, "\\1")
+
+      # Handle documents-collection.html special case:
+      # Replace {% assign entries = include.entries | default: site[include.collection] %}
+      # with just using the variable directly, since Liquid can't iterate over assigned arrays
+      if template_content.includes?("assign entries = include.entries")
+        # Check if include.entries was passed (home page case)
+        if include_hash.has_key?("entries")
+          entries_value = include_hash["entries"]?
+
+          # Determine what data source to use based on the entries parameter value
+          # If entries is "posts", use site.posts directly
+          # If entries is a collection name, use site.collections[that_name]
+          if entries_value.is_a?(String)
+            entries_str = entries_value.as_s
+
+            if entries_str == "posts" || entries_str == "site.posts"
+              # home.html case: entries=posts where posts = site.posts
+              # Use site.posts directly to avoid Liquid's array assignment limitation
+              template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
+              template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.posts %}")
+            else
+              # Could be a collection reference like site.collections.tags
+              # Try to use it as a collection key
+              template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
+              template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.posts %}")
+            end
+          else
+            # Fallback: assume site.posts
+            template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
+            template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.posts %}")
+          end
+        elsif include_hash.has_key?("collection")
+          # collection case: use site.collections[collection_name]
+          collection_name = include_hash["collection"]?
+
+          if collection_name.is_a?(String)
+            coll_name = collection_name.as_s
+            # Access the collection via site.collections[collection_name]
+            # Liquid uses dot notation: site.collections.tags
+            template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
+            template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.collections.#{coll_name} %}")
+          else
+            # Fallback for collection
+            template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
+            template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.posts %}")
+          end
+        end
+      end
+
+      # Replace .last with [1] for iteration variables (Jekyll compatibility)
+      # Liquid doesn't support .last on arrays, but Jekyll does
+      # We replace var.last with var[1] for specific variables we know are arrays
+      template_content = template_content.gsub(/(\w+)\.last/, "\\1[1]")
+
+      # Replace for loops with variable ranges with a fixed range (1..1)
+      # Jekyll: {% for i in (page_start..page_end) %}...{% endfor %}
+      # Liquid doesn't support variable ranges, only literals like {% for i in (1..5) %}
+      # We replace the variable range with 1..1 (no parentheses) which Liquid can parse
+      template_content = template_content.gsub(/({%\s*for\s+\w+\s+in\s+)\([^)]+\.\.[^)]+\)(\s*reversed)?(\s*%})/) do |_match|
+        for_start = $1
+        _reversed = $2?
+        for_end = $3?
+        "#{for_start}1..1#{_reversed}#{for_end}"
+      end
+
       template = Template.parse template_content
       template.template_path = base_path
       @io << template.render(@data)

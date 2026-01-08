@@ -5,3 +5,6 @@
 .DS_store
 _site/
 *.dwarf
+.beads
+# bv (beads viewer) local config and caches
+.bv/

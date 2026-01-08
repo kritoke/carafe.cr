@@ -1,6 +1,7 @@
 require "liquid"
 require "../processor"
 require "../liquid/filters/jekyll"
+require "../plugins/carafe_dark_mode"
 
 class Carafe::Processor::Layout < Carafe::Processor
   transforms "*": "output"
@@ -90,6 +91,20 @@ class Carafe::Processor::Layout < Carafe::Processor
 
       if !layout_name || layout_name == "none"
         break
+      end
+    end
+
+    # Inject dark mode assets if enabled
+    dark_mode_enabled = @site.config["dark_mode"]?
+    if dark_mode_enabled.nil? || dark_mode_enabled.as_s? == "true" || (dark_mode_enabled.raw == true)
+      dark_mode_html = Carafe::Plugins::CarafeDarkMode.generate_assets[:html]
+      # Inject before closing </head> tag or at the end of </body>
+      if content.includes?("</head>")
+        content = content.gsub("</head>", "#{dark_mode_html}\n</head>")
+      elsif content.includes?("</body>")
+        content = content.gsub("</body>", "#{dark_mode_html}\n</body>")
+      else
+        content += dark_mode_html
       end
     end
 

@@ -327,7 +327,16 @@ class Carafe::Processor::Layout < Carafe::Processor
 
       collections_array << Liquid::Any.new(collection_hash)
     end
-    site_hash["collections"] = Liquid::Any.new(collections_array)
+
+    # Convert collections array to hash for Jekyll compatibility
+    # In Jekyll, site.collections.collection_name works
+    collections_hash = {} of String => Liquid::Any
+    collections_array.each do |collection_any|
+      collection = collection_any.raw.as(Hash(String, Liquid::Any))
+      collection_name = collection["name"].as_s
+      collections_hash[collection_name] = collection_any
+    end
+    site_hash["collections"] = Liquid::Any.new(collections_hash)
 
     # Aggregate tags from all resources across all collections
     tags_hash = Hash(String, Array(Liquid::Any)).new

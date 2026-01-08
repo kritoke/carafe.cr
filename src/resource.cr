@@ -222,6 +222,9 @@ class Carafe::Resource
     date, shortname = date_and_shortname_from_slug
     date ||= self.date
 
+    # Use basename as fallback for shortname (for collection resources without date prefix)
+    title_value = shortname || basename
+
     tokens = {
       "year"        => date.to_s("%Y"),
       "month"       => date.to_s("%m"),
@@ -234,8 +237,8 @@ class Carafe::Resource
       "short_month" => date.to_s("%b"),
       "short_year"  => date.to_s("%y"),
       "y_day"       => date.to_s("%j"),
-      "title"       => shortname.to_s,
-      "slug"        => shortname.to_s.downcase,
+      "title"       => title_value.to_s,
+      "slug"        => title_value.to_s.downcase,
       "name"        => name.to_s,
       "basename"    => basename.to_s,
       "collection"  => collection.try(&.name).to_s,

@@ -22,9 +22,9 @@ class Carafe::Generator::Files < Carafe::Generator
       slug = full_path.lchop(directory).lchop('/')
 
       if !includes.any? { |pattern| File.match?(pattern, slug) } && (
-           slug.starts_with?('_') ||
+           slug.starts_with?('_') && !slug.starts_with?("_pages/") ||
            # TODO: Don't traverse hidden directories in the first place.
-           slug.includes?("/_") ||
+           slug.includes?("/_") && !slug.starts_with?("_pages/") ||
            excludes.any? { |pattern| File.match?(pattern, slug) }
          )
         next

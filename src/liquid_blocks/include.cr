@@ -114,6 +114,67 @@ module Liquid
 
       template_content = File.read filename
 
+      # Handle documents-collection.html special case BEFORE filter removal
+      # Replace {% assign entries = include.entries | default: site[include.collection] %}
+      # with just using the variable directly, since Liquid can't iterate over assigned arrays
+      if template_content.includes?("assign entries = include.entries")
+        # Check if include.entries was passed (home page case)
+        if include_hash.has_key?("entries")
+          entries_value = include_hash["entries"]?
+
+          # Determine what data source to use based on the entries parameter value
+          # If entries is "posts", use site.posts directly
+          # If entries is a collection name, use site.collections[that_name]
+          if entries_value.is_a?(String)
+            entries_str = entries_value.as_s
+
+            if entries_str == "posts" || entries_str == "site.posts"
+              # home.html case: entries=posts where posts = site.posts
+              # Use site.posts directly to avoid Liquid's array assignment limitation
+              template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
+              template_content = template_content.gsub(/{%\s*assign entries = include\.entries.*?%}/, "")
+              template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.posts %}")
+              template_content = template_content.gsub(/{%\s*for\s+post\s+in\s+entries\s*%}/, "{% for post in site.posts %}")
+            else
+              # Could be a collection reference like site.collections.tags
+              # Try to use it as a collection key
+              template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
+              template_content = template_content.gsub(/{%\s*assign entries = include\.entries.*?%}/, "")
+              template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.posts %}")
+              template_content = template_content.gsub(/{%\s*for\s+post\s+in\s+entries\s*%}/, "{% for post in site.posts %}")
+            end
+          else
+            # Fallback: assume site.posts
+            template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
+            template_content = template_content.gsub(/{%\s*assign entries = include\.entries.*?%}/, "")
+            template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.posts %}")
+            template_content = template_content.gsub(/{%\s*for\s+post\s+in\s+entries\s*%}/, "{% for post in site.posts %}")
+          end
+        elsif include_hash.has_key?("collection")
+          # collection case: use site.collections[collection_name].docs
+          collection_name = include_hash["collection"]?
+
+          # collection_name is Liquid::Any, need to extract the string value
+          coll_name = collection_name.try(&.as_s?)
+          if coll_name
+            # Access the collection docs via site.collections[collection_name].docs
+            # Liquid uses dot notation: site.collections.resources.docs
+            # The template has: {% assign entries = include.entries | default: site[include.collection] | where_exp: "post", "post.hidden != true" %}
+            # We need to remove this entire assign statement and replace the for loop
+            template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
+            template_content = template_content.gsub(/{%\s*assign entries = include\.entries.*?%}/, "")
+            template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.collections.#{coll_name}.docs %}")
+            template_content = template_content.gsub(/{%\s*for\s+post\s+in\s+entries\s*%}/, "{% for post in site.collections.#{coll_name}.docs %}")
+          else
+            # Fallback for collection
+            template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
+            template_content = template_content.gsub(/{%\s*assign entries = include\.entries.*?%}/, "")
+            template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.posts %}")
+            template_content = template_content.gsub(/{%\s*for\s+post\s+in\s+entries\s*%}/, "{% for post in site.posts %}")
+          end
+        end
+      end
+
       # Preprocess to remove Jekyll-specific Liquid syntax that Liquid doesn't support
       # Remove {% continue %} tags (not supported by Liquid)
       template_content = template_content.gsub(/{%\s*continue\s*%}/, "")
@@ -135,54 +196,6 @@ module Liquid
       # Clean up trailing pipes before closing brace (but only if there's nothing after the pipe)
       # Pattern: | %}  or  | %}
       template_content = template_content.gsub(/\|\s*(%})/, "\\1")
-
-      # Handle documents-collection.html special case:
-      # Replace {% assign entries = include.entries | default: site[include.collection] %}
-      # with just using the variable directly, since Liquid can't iterate over assigned arrays
-      if template_content.includes?("assign entries = include.entries")
-        # Check if include.entries was passed (home page case)
-        if include_hash.has_key?("entries")
-          entries_value = include_hash["entries"]?
-
-          # Determine what data source to use based on the entries parameter value
-          # If entries is "posts", use site.posts directly
-          # If entries is a collection name, use site.collections[that_name]
-          if entries_value.is_a?(String)
-            entries_str = entries_value.as_s
-
-            if entries_str == "posts" || entries_str == "site.posts"
-              # home.html case: entries=posts where posts = site.posts
-              # Use site.posts directly to avoid Liquid's array assignment limitation
-              template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
-              template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.posts %}")
-            else
-              # Could be a collection reference like site.collections.tags
-              # Try to use it as a collection key
-              template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
-              template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.posts %}")
-            end
-          else
-            # Fallback: assume site.posts
-            template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
-            template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.posts %}")
-          end
-        elsif include_hash.has_key?("collection")
-          # collection case: use site.collections[collection_name]
-          collection_name = include_hash["collection"]?
-
-          if collection_name.is_a?(String)
-            coll_name = collection_name.as_s
-            # Access the collection via site.collections[collection_name]
-            # Liquid uses dot notation: site.collections.tags
-            template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
-            template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.collections.#{coll_name} %}")
-          else
-            # Fallback for collection
-            template_content = template_content.gsub(/{%-?\s*assign entries = include\.entries.*?%-?%}/, "")
-            template_content = template_content.gsub(/{%-?\s*for\s+post\s+in\s+entries\s*-?%}/, "{% for post in site.posts %}")
-          end
-        end
-      end
 
       # Replace .last with [1] for iteration variables (Jekyll compatibility)
       # Liquid doesn't support .last on arrays, but Jekyll does

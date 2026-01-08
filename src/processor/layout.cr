@@ -427,6 +427,22 @@ class Carafe::Processor::Layout < Carafe::Processor
     end
     site_hash["posts"] = Liquid::Any.new(posts_array)
 
+    # Add subtitle (used in masthead)
+    site_hash["subtitle"] = Liquid::Any.new(@site.config["subtitle"]?.try(&.as_s) || "")
+
+    # Add footer (contains social media links)
+    if footer_value = @site.config["footer"]?
+      site_hash["footer"] = convert_yaml_to_liquid(footer_value)
+    end
+
+    # Add author (used in author profile)
+    if author_value = @site.config["author"]?
+      site_hash["author"] = convert_yaml_to_liquid(author_value)
+    end
+
+    # Add email
+    site_hash["email"] = Liquid::Any.new(@site.config["email"]?.try(&.as_s) || "")
+
     site_hash
   end
 

@@ -104,7 +104,59 @@ class Carafe::Processor::Crinja < Carafe::Processor
     site_hash["time"] = Liquid::Any.new(Time.local.to_s)
     site_hash["collections"] = Liquid::Any.new(collections_array)
 
+    # Add subtitle (used in masthead)
+    site_hash["subtitle"] = Liquid::Any.new(@site.config["subtitle"]?.try(&.as_s) || "")
+
+    # Add footer (contains social media links)
+    if footer_value = @site.config["footer"]?
+      site_hash["footer"] = convert_yaml_any_to_liquid(footer_value)
+    end
+
+    # Add author (used in author profile)
+    if author_value = @site.config["author"]?
+      site_hash["author"] = convert_yaml_any_to_liquid(author_value)
+    end
+
+    # Add name (commonly used in themes)
+    site_hash["name"] = Liquid::Any.new(@site.config["name"]?.try(&.as_s) || "")
+
+    # Add email
+    site_hash["email"] = Liquid::Any.new(@site.config["email"]?.try(&.as_s) || "")
+
     site_hash
+  end
+
+  # Convert YAML::Any to Liquid::Any, handling hashes and arrays recursively
+  private def convert_yaml_any_to_liquid(yaml_value : YAML::Any) : Liquid::Any
+    case raw = yaml_value.raw
+    when Hash
+      # Convert hash to Liquid::Any format
+      liquid_hash = {} of String => Liquid::Any
+      raw.each do |k, v|
+        key_str = k.is_a?(String) ? k : k.to_s
+        if v.is_a?(YAML::Any)
+          liquid_hash[key_str] = convert_yaml_any_to_liquid(v)
+        else
+          liquid_hash[key_str] = Liquid::Any.new(v || "")
+        end
+      end
+      Liquid::Any.new(liquid_hash)
+    when Array
+      # Convert array to Liquid::Any format
+      liquid_array = raw.map do |item|
+        if item.is_a?(YAML::Any)
+          convert_yaml_any_to_liquid(item)
+        else
+          Liquid::Any.new(item || "")
+        end
+      end
+      Liquid::Any.new(liquid_array)
+    when String, Int32, Int64, Float64, Bool
+      Liquid::Any.new(raw)
+    else
+      # Fallback for other types
+      Liquid::Any.new(raw.to_s || "")
+    end
   end
 
   private def build_simple_page_hash(resource : Resource)

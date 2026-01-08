@@ -1,4 +1,6 @@
-require "../carafe"
+require "../plugin"
+require "../site"
+require "../config"
 require "liquid"
 
 module Carafe::Plugins::CarafeDarkMode

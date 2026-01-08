@@ -142,11 +142,11 @@ class Carafe::Plugins::RemoteTheme < Carafe::Plugin
     private def integrate_theme(theme_dir : String, site : Carafe::Site) : Nil
       # Theme directories to integrate
       theme_dirs = {
-        "_layouts"     => site.config.layouts_dir,
-        "_includes"    => site.config.includes_dir,
-        "_sass"        => "_sass",
-        "assets"       => "assets",
-        "static"       => "static",
+        "_layouts"  => site.config.layouts_dir,
+        "_includes" => site.config.includes_dir,
+        "_sass"     => "_sass",
+        "assets"    => "assets",
+        "static"    => "static",
       }
 
       theme_dirs.each do |theme_subdir, site_subdir|

@@ -73,29 +73,29 @@ module Liquid
 
       # Use liquid.cr's file finding logic with .html → .liquid fallback (Jekyll compatibility)
       filename = if File.exists?(File.join(includes_dir, node.template_name))
-                    File.join(includes_dir, node.template_name)
-                  elsif File.extname(node.template_name) == ".html"
-                    # If .html is specified but doesn't exist, try .liquid
-                    liquid_path = File.join(includes_dir, node.template_name.sub(/\.html$/, ".liquid"))
-                    if File.exists?(liquid_path)
-                      liquid_path
-                    else
-                      File.join(includes_dir, node.template_name)
-                    end
-                  elsif File.extname(node.template_name).empty?
-                    # No extension provided, try .liquid first, then .html
-                    liquid_path = File.join(includes_dir, node.template_name + ".liquid")
-                    html_path = File.join(includes_dir, node.template_name + ".html")
-                    if File.exists?(liquid_path)
-                      liquid_path
-                    elsif File.exists?(html_path)
-                      html_path
-                    else
-                      File.join(includes_dir, node.template_name)
-                    end
-                  else
-                    File.join(includes_dir, node.template_name)
-                  end
+                   File.join(includes_dir, node.template_name)
+                 elsif File.extname(node.template_name) == ".html"
+                   # If .html is specified but doesn't exist, try .liquid
+                   liquid_path = File.join(includes_dir, node.template_name.sub(/\.html$/, ".liquid"))
+                   if File.exists?(liquid_path)
+                     liquid_path
+                   else
+                     File.join(includes_dir, node.template_name)
+                   end
+                 elsif File.extname(node.template_name).empty?
+                   # No extension provided, try .liquid first, then .html
+                   liquid_path = File.join(includes_dir, node.template_name + ".liquid")
+                   html_path = File.join(includes_dir, node.template_name + ".html")
+                   if File.exists?(liquid_path)
+                     liquid_path
+                   elsif File.exists?(html_path)
+                     html_path
+                   else
+                     File.join(includes_dir, node.template_name)
+                   end
+                 else
+                   File.join(includes_dir, node.template_name)
+                 end
 
       # Create an 'include' hash for include variables (Jekyll compatibility)
       include_hash = {} of String => Liquid::Any
@@ -222,4 +222,3 @@ end
 
 # Register the Jekyll-compatible include to override the default include
 Liquid::BlockRegister.register "include", Liquid::Block::JekyllInclude, false
-

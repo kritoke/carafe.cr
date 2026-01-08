@@ -15,7 +15,7 @@ class Carafe::Builder
       run_processors(@site.files)
 
       @site.collections.each_value do |collection|
-        next unless collection.output
+        next unless collection.output?
         puts "Building #{collection.name}..."
         begin
           run_processors(collection.resources)

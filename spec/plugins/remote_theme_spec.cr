@@ -55,7 +55,7 @@ describe Carafe::Plugins::RemoteTheme do
       plugin.register(site)
 
       site.generators.size.should be > 0
-      site.generators.find { |g| g.is_a?(Carafe::Plugins::RemoteTheme::Generator) }.should_not be_nil
+      site.generators.find { |generator| generator.is_a?(Carafe::Plugins::RemoteTheme::Generator) }.should_not be_nil
     end
   end
 end

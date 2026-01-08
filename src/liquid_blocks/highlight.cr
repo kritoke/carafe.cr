@@ -5,7 +5,7 @@ require "tartrazine"
 module Liquid::Block
   class Highlight < BeginBlock
     getter language : String
-    getter linenos : Bool
+    getter? linenos : Bool
 
     def initialize(content : String)
       # Parse arguments: language linenos
@@ -30,9 +30,9 @@ module Liquid
         html = Tartrazine.to_html(
           code,
           language: node.language,
-          theme: "default",  # Can be configured later
-          line_numbers: node.linenos,
-          standalone: false  # We'll wrap it ourselves
+          theme: "default", # Can be configured later
+          line_numbers: node.linenos?,
+          standalone: false # We'll wrap it ourselves
         )
 
         # Wrap in figure element (Jekyll-compatible structure)

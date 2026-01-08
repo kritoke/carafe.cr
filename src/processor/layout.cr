@@ -185,7 +185,6 @@ class Carafe::Processor::Layout < Carafe::Processor
   # - {% continue %} tag (not supported by Liquid)
   # - where_exp, sort, and reverse filters (not supported by Liquid)
   private def preprocess_jekyll_syntax(template : String) : String
-
     # Remove Jekyll for loop modifiers
     # Jekyll: {% for item in array offset: 1 limit: 5 %}
     # Liquid: {% for item in array %} (modifiers not supported)
@@ -317,10 +316,10 @@ class Carafe::Processor::Layout < Carafe::Processor
 
       # Convert resources to array
       docs_array = [] of Liquid::Any
-      collection.resources.each do |r|
+      collection.resources.each do |resource|
         doc_hash = {} of String => Liquid::Any
-        doc_hash["url"] = Liquid::Any.new(r.url.try(&.to_s) || "")
-        doc_hash["title"] = Liquid::Any.new(r["title"]?.try(&.as_s) || "")
+        doc_hash["url"] = Liquid::Any.new(resource.url.try(&.to_s) || "")
+        doc_hash["title"] = Liquid::Any.new(resource["title"]?.try(&.as_s) || "")
         docs_array << Liquid::Any.new(doc_hash)
       end
       collection_hash["docs"] = Liquid::Any.new(docs_array)
@@ -341,15 +340,15 @@ class Carafe::Processor::Layout < Carafe::Processor
     # Aggregate tags from all resources across all collections
     tags_hash = Hash(String, Array(Liquid::Any)).new
     @site.collections.each do |name, collection|
-      collection.resources.each do |r|
+      collection.resources.each do |resource|
         # Get tags from resource frontmatter
-        if tags_value = r["tags"]?
+        if tags_value = resource["tags"]?
           # Convert resource to Liquid::Any hash
           resource_hash = {} of String => Liquid::Any
-          resource_hash["url"] = Liquid::Any.new(r.url.try(&.to_s) || "")
-          resource_hash["title"] = Liquid::Any.new(r["title"]?.try(&.as_s) || "")
-          resource_hash["date"] = Liquid::Any.new(r.date.to_s)
-          resource_hash["slug"] = Liquid::Any.new(r.slug)
+          resource_hash["url"] = Liquid::Any.new(resource.url.try(&.to_s) || "")
+          resource_hash["title"] = Liquid::Any.new(resource["title"]?.try(&.as_s) || "")
+          resource_hash["date"] = Liquid::Any.new(resource.date.to_s)
+          resource_hash["slug"] = Liquid::Any.new(resource.slug)
           resource_hash["collection"] = Liquid::Any.new(name)
 
           # Handle tags as array or string (Jekyll supports both)
@@ -392,7 +391,7 @@ class Carafe::Processor::Layout < Carafe::Processor
     posts_array = [] of Liquid::Any
     if posts_collection = @site.collections["posts"]?
       # Sort posts by date (newest first)
-      sorted_posts = posts_collection.resources.sort_by { |r| r.date }.reverse
+      sorted_posts = posts_collection.resources.sort_by(&.date).reverse!
 
       sorted_posts.each do |post|
         post_hash = {} of String => Liquid::Any
@@ -446,15 +445,15 @@ class Carafe::Processor::Layout < Carafe::Processor
       when Hash
         # Convert nested hashes
         hash = {} of String => Liquid::Any
-        raw.each do |hk, hv|
-          hash_key = hk.is_a?(String) ? hk : hk.to_s
+        raw.each do |yaml_key, yaml_value|
+          hash_key = yaml_key.is_a?(String) ? yaml_key : yaml_key.to_s
           # Recursively convert nested values
-          if hv.is_a?(YAML::Any)
-            hash[hash_key] = convert_yaml_to_liquid(hv)
-          elsif hv.nil?
+          if yaml_value.is_a?(YAML::Any)
+            hash[hash_key] = convert_yaml_to_liquid(yaml_value)
+          elsif yaml_value.nil?
             hash[hash_key] = Liquid::Any.new("")
           else
-            hash[hash_key] = Liquid::Any.new(hv.to_s)
+            hash[hash_key] = Liquid::Any.new(yaml_value.to_s)
           end
         end
         config_hash[key] = Liquid::Any.new(hash)

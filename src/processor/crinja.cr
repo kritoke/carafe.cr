@@ -58,15 +58,15 @@ class Carafe::Processor::Crinja < Carafe::Processor
       # Convert resources (called 'docs' in Jekyll) to Array(Liquid::Any)
       # Each element is a wrapped Hash(String, Liquid::Any)
       docs_as_any = [] of Liquid::Any
-      collection.resources.each do |r|
+      collection.resources.each do |resource|
         resource_hash = {} of String => Liquid::Any
-        resource_hash["url"] = Liquid::Any.new(r.url.try(&.to_s) || "")
-        resource_hash["title"] = Liquid::Any.new(r["title"]?.try(&.as_s) || "")
-        resource_hash["content"] = Liquid::Any.new(r.content || "")
-        resource_hash["excerpt"] = Liquid::Any.new(r["excerpt"]?.try(&.as_s) || "")
+        resource_hash["url"] = Liquid::Any.new(resource.url.try(&.to_s) || "")
+        resource_hash["title"] = Liquid::Any.new(resource["title"]?.try(&.as_s) || "")
+        resource_hash["content"] = Liquid::Any.new(resource.content || "")
+        resource_hash["excerpt"] = Liquid::Any.new(resource["excerpt"]?.try(&.as_s) || "")
 
         # Handle categories - convert to array of Liquid::Any
-        categories_value = r["categories"]?
+        categories_value = resource["categories"]?
         if categories_value.is_a?(YAML::Any) && (categories_array = categories_value.as_a?)
           resource_hash["categories"] = Liquid::Any.new(categories_array.map(&.as_s).map { |cat| Liquid::Any.new(cat) })
         else
@@ -74,7 +74,7 @@ class Carafe::Processor::Crinja < Carafe::Processor
         end
 
         # Handle tags - convert to array of Liquid::Any
-        tags_value = r["tags"]?
+        tags_value = resource["tags"]?
         if tags_value.is_a?(YAML::Any) && (tags_array = tags_value.as_a?)
           resource_hash["tags"] = Liquid::Any.new(tags_array.map(&.as_s).map { |tag| Liquid::Any.new(tag) })
         else
@@ -115,23 +115,23 @@ class Carafe::Processor::Crinja < Carafe::Processor
     # Handle title carefully - YAML::Any might contain nil
     title_value = resource["title"]?
     title_str = if title_value
-                 begin
-                   title_value.as_s?
-                 rescue
-                   nil
-                 end
-               end
+                  begin
+                    title_value.as_s?
+                  rescue
+                    nil
+                  end
+                end
     page_hash["title"] = Liquid::Any.new(title_str || "")
 
     # Handle locale carefully
     locale_value = resource["locale"]? || @site.config["locale"]?
     locale_str = if locale_value
-                  begin
-                    locale_value.as_s?
-                  rescue
-                    nil
-                  end
-                end
+                   begin
+                     locale_value.as_s?
+                   rescue
+                     nil
+                   end
+                 end
     page_hash["locale"] = Liquid::Any.new(locale_str || "en")
 
     page_hash

@@ -97,21 +97,19 @@ module Liquid::Filters
     extend Filter
 
     def self.filter(data : Any, args : Array(Any), options : Hash(String, Any)) : Any
-      begin
-        raw = data.raw
-        time = case raw
-        when Time
-          raw
-        when String
-          Time.parse_iso8601(raw)
-        else
-          return Any.new("")
-        end
+      raw = data.raw
+      time = case raw
+             when Time
+               raw
+             when String
+               Time.parse_iso8601(raw)
+             else
+               return Any.new("")
+             end
 
-        Any.new(time.to_s("%Y-%m-%dT%H:%M:%S%:z"))
-      rescue
-        Any.new("")
-      end
+      Any.new(time.to_s("%Y-%m-%dT%H:%M:%S%:z"))
+    rescue
+      Any.new("")
     end
   end
 
@@ -169,4 +167,3 @@ module Liquid::Filters
 
   FilterRegister.register "markdownify", Markdownify
 end
-

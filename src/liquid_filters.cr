@@ -317,7 +317,7 @@ module Carafe::LiquidFilters
     def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
       return Liquid::Any.new([] of Liquid::Any) if data.raw.nil?
       pattern = args[0]?.try(&.as_s) || " "
-      array = data.as_s.split(pattern).map { |s| Liquid::Any.new(s) }
+      array = data.as_s.split(pattern).map { |string| Liquid::Any.new(string) }
       Liquid::Any.new(array)
     end
   end
@@ -411,21 +411,21 @@ module Carafe::LiquidFilters
 
     def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
       time = if data.raw.is_a?(Time)
-                data.raw.as(Time)
-              elsif data.raw.is_a?(String)
-                date_str = data.as_s
-                begin
-                  Time.parse_rfc3339(date_str)
-                rescue
-                  begin
-                    Time.parse_iso8601(date_str)
-                  rescue
-                    Time.parse(date_str, "%Y-%m-%d", Time::Location.local)
-                  end
-                end
-              else
-                Time.local
-              end
+               data.raw.as(Time)
+             elsif data.raw.is_a?(String)
+               date_str = data.as_s
+               begin
+                 Time.parse_rfc3339(date_str)
+               rescue
+                 begin
+                   Time.parse_iso8601(date_str)
+                 rescue
+                   Time.parse(date_str, "%Y-%m-%d", Time::Location.local)
+                 end
+               end
+             else
+               Time.local
+             end
       Liquid::Any.new(time.to_rfc3339)
     end
   end

@@ -505,7 +505,15 @@ class Carafe::Processor::Layout < Carafe::Processor
 
     page_hash["url"] = Liquid::Any.new(url)
     page_hash["path"] = Liquid::Any.new(path)
-    page_hash["date"] = Liquid::Any.new(resource.date.to_s)
+    # Only add date for posts, not pages
+    # Posts collection resources always get a date (even if inferred from filename)
+    # Other pages only get a date if explicitly set in frontmatter
+    collection_name = resource.collection.try(&.name)
+    # DEBUG: Uncomment to see collection names
+    # STDERR.puts "DEBUG: resource=#{resource.slug}, collection=#{collection_name.inspect}, has_date=#{resource.frontmatter.has_key?("date")}"
+    if collection_name == "posts" || resource.frontmatter.has_key?("date")
+      page_hash["date"] = Liquid::Any.new(resource.date.to_s)
+    end
 
     # Add frontmatter data
     resource.frontmatter.each do |k, v|

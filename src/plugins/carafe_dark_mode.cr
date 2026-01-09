@@ -8,247 +8,96 @@ module Carafe::Plugins::CarafeDarkMode
   class DarkModeGenerator
     def generate_css : String
       <<-CSS
-      /* Minimal Mistakes Dark Skin - Applied when skin-dark class is present */
-      html.skin-dark {
-        /* Base variables for dark skin */
-        --background-color: #1a1d24;
-        --text-color: #eaeaea;
-        --primary-color: #64b5f6;
-        --border-color: #51555d;
-        --nav-background: #252a34;
-        --sidebar-background: #252a34;
-        --footer-background: #1a1d24;
+      /* Dark Mode Styles */
+      :root {
+        --dark-mode-text-color: #e0e0e0;
+        --dark-mode-bg-color: #1a1a1a;
+        --dark-mode-sidebar-bg: #2d2d2d;
+        --dark-mode-border-color: #404040;
+        --dark-mode-link-color: #64b5f6;
+        --dark-mode-code-bg: #2d2d2d;
       }
 
-      html.skin-dark body {
-        color: #eaeaea !important;
+      body.dark-mode {
+        color: var(--dark-mode-text-color);
+        background-color: var(--dark-mode-bg-color);
       }
 
-      html.skin-dark .masthead,
-      html.skin-dark .masthead__inner-wrap,
-      html.skin-dark .masthead__menu {
-        background-color: transparent !important;
-        border-bottom: 1px solid #51555d !important;
+      body.dark-mode .masthead {
+        background-color: var(--dark-mode-sidebar-bg);
+        border-bottom: 1px solid var(--dark-mode-border-color);
       }
 
-      /* Navigation */
-      html.skin-dark nav.greedy-nav,
-      html.skin-dark .greedy-nav .visible-links,
-      html.skin-dark .greedy-nav .hidden-links,
-      html.skin-dark .greedy-nav li,
-      html.skin-dark .greedy-nav li a {
-        background-color: #252a34 !important;
+      body.dark-mode .sidebar {
+        background-color: var(--dark-mode-sidebar-bg);
       }
 
-      html.skin-dark .greedy-nav .visible-links a,
-      html.skin-dark .greedy-nav li a {
-        color: #eaeaea !important;
+      body.dark-mode .page__content {
+        color: var(--dark-mode-text-color);
       }
 
-      html.skin-dark .greedy-nav .visible-links a:hover,
-      html.skin-dark .greedy-nav li a:hover {
-        color: #64b5f6 !important;
+      body.dark-mode .page__title,
+      body.dark-mode h1,
+      body.dark-mode h2,
+      body.dark-mode h3,
+      body.dark-mode h4,
+      body.dark-mode h5,
+      body.dark-mode h6 {
+        color: var(--dark-mode-text-color);
       }
 
-      /* Hidden links dropdown */
-      html.skin-dark .hidden-links.hidden,
-      html.skin-dark .greedy-nav__toggle {
-        background-color: #252a34 !important;
-        border: 1px solid #51555d !important;
+      body.dark-mode a {
+        color: var(--dark-mode-link-color);
       }
 
-      /* Main content area */
-      html.skin-dark .page__wrapper,
-      html.skin-dark .page,
-      html.skin-dark .page__inner-wrap,
-      html.skin-dark .page__content,
-      html.skin-dark .page__share,
-      html.skin-dark .page__related,
-      html.skin-dark .page__comments {
-        color: #eaeaea !important;
+      body.dark-mode code,
+      body.dark-mode pre {
+        background-color: var(--dark-mode-code-bg);
+        border-color: var(--dark-mode-border-color);
       }
 
-      /* Headings */
-      html.skin-dark .page__title,
-      html.skin-dark h1,
-      html.skin-dark h2,
-      html.skin-dark h3,
-      html.skin-dark h4,
-      html.skin-dark h5,
-      html.skin-dark h6 {
-        color: #eaeaea !important;
+      body.dark-mode blockquote {
+        border-left-color: var(--dark-mode-link-color);
       }
 
-      /* Links */
-      html.skin-dark a,
-      html.skin-dark .page__content a {
-        color: #64b5f6 !important;
+      body.dark-mode table {
+        border-color: var(--dark-mode-border-color);
       }
 
-      html.skin-dark a:hover,
-      html.skin-dark .page__content a:hover {
-        color: #90caf9 !important;
+      body.dark-mode td,
+      body.dark-mode th {
+        border-color: var(--dark-mode-border-color);
       }
 
-      /* Sidebar */
-      html.skin-dark .sidebar,
-      html.skin-dark .sidebar__right,
-      html.skin-dark .author__urls-wrapper {
-        background-color: #252a34 !important;
-        border-color: #51555d !important;
+      body.dark-mode .page__footer {
+        background-color: var(--dark-mode-sidebar-bg);
+        border-top: 1px solid var(--dark-mode-border-color);
       }
 
-      html.skin-dark .author__content p,
-      html.skin-dark .author__name {
-        color: #eaeaea !important;
-      }
-
-      /* Footer */
-      html.skin-dark .page__footer,
-      html.skin-dark .page__footer-follow,
-      html.skin-dark .page__footer-copyright {
-        background-color: #1a1d24 !important;
-        border-top: 1px solid #eeeeee !important;
-        color: #eeeeee !important;
-      }
-
-      html.skin-dark .page__footer a {
-        color: #64b5f6 !important;
-      }
-
-      /* Archive and list items */
-      html.skin-dark .archive__item,
-      html.skin-dark .list__item,
-      html.skin-dark .feature__wrapper {
-        border-color: #51555d !important;
-      }
-
-      html.skin-dark .archive__item-title,
-      html.skin-dark .archive__item-title a {
-        color: #eaeaea !important;
-      }
-
-      html.skin-dark .archive__item-excerpt,
-      html.skin-dark .archive__item-teaser {
-        color: #b0b0b0 !important;
-      }
-
-      /* Code blocks */
-      html.skin-dark code,
-      html.skin-dark pre,
-      html.skin-dark .highlight {
-        background-color: #252a34 !important;
-        border-color: #51555d !important;
-        color: #eaeaea !important;
-      }
-
-      html.skin-dark code::-webkit-scrollbar,
-      html.skin-dark pre::-webkit-scrollbar {
-        background: #252a34 !important;
-      }
-
-      /* Blockquotes */
-      html.skin-dark blockquote {
-        border-left-color: #64b5f6 !important;
-        background-color: #252a34 !important;
-        color: #b0b0b0 !important;
-      }
-
-      /* Tables */
-      html.skin-dark table,
-      html.skin-dark th,
-      html.skin-dark td {
-        border-color: #51555d !important;
-      }
-
-      html.skin-dark th,
-      html.skin-dark tr:nth-child(even) {
-        background-color: #252a34 !important;
-      }
-
-      /* Forms and inputs */
-      html.skin-dark input,
-      html.skin-dark textarea,
-      html.skin-dark select {
-        background-color: #252a34 !important;
-        border-color: #51555d !important;
-        color: #eaeaea !important;
-      }
-
-      html.skin-dark input:focus,
-      html.skin-dark textarea:focus,
-      html.skin-dark select:focus {
-        border-color: #64b5f6 !important;
-      }
-
-      /* Buttons */
-      html.skin-dark .btn,
-      html.skin-dark button {
-        background-color: #252a34 !important;
-        color: #eaeaea !important;
-        border-color: #51555d !important;
-      }
-
-      html.skin-dark .btn:hover,
-      html.skin-dark button:hover {
-        background-color: #64b5f6 !important;
-        color: white !important;
-      }
-
-      /* Pagination */
-      html.skin-dark .pagination,
-      html.skin-dark .pager li a,
-      html.skin-dark .pager li span {
-        background-color: #252a34 !important;
-        border-color: #51555d !important;
-        color: #eaeaea !important;
-      }
-
-      html.skin-dark .pagination li a:hover,
-      html.skin-dark .pagination li.current a {
-        background-color: #64b5f6 !important;
-        color: white !important;
-      }
-
-      /* Search */
-      html.skin-dark .search__input {
-        background-color: #252a34 !important;
-        border-color: #51555d !important;
-        color: #eaeaea !important;
-      }
-
-      html.skin-dark .search__results {
-        background-color: #252a34 !important;
-        border-color: #51555d !important;
-      }
-
-      /* Algolia search */
-      html.skin-dark .ais-Hits,
-      html.skin-dark .ais-Hits-list,
-      html.skin-dark .ais-Hit {
-        background-color: #252a34 !important;
-        color: #eaeaea !important;
+      body.dark-mode .masthead__menu,
+      body.dark-mode .author__urls,
+      body.dark-mode .sidebar__right {
+        background-color: var(--dark-mode-sidebar-bg);
       }
 
       /* Dark mode toggle button */
       .dark-mode-toggle {
-        position: fixed !important;
-        bottom: 20px !important;
-        right: 20px !important;
-        z-index: 9999 !important;
-        background: #252a34 !important;
-        border: 2px solid #51555d !important;
-        color: #eaeaea !important;
-        padding: 10px 15px !important;
-        border-radius: 5px !important;
-        cursor: pointer !important;
-        transition: all 0.3s ease !important;
-        font-size: 14px !important;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: var(--dark-mode-sidebar-bg);
+        border: 2px solid var(--dark-mode-border-color);
+        color: var(--dark-mode-text-color);
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
       }
 
       .dark-mode-toggle:hover {
-        background: #64b5f6 !important;
-        color: white !important;
+        background: var(--dark-mode-link-color);
+        color: white;
       }
 
       /* Smooth transitions */
@@ -268,7 +117,7 @@ module Carafe::Plugins::CarafeDarkMode
         'use strict';
 
         // Check for saved preference or system preference
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const savedTheme = localStorage.getItem('theme');
         const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
 
@@ -291,33 +140,23 @@ module Carafe::Plugins::CarafeDarkMode
           setTheme(!isDark);
         }
 
+        // Initialize theme on page load
+        setTheme(shouldUseDark);
+
         // Create and inject toggle button
         function createToggleButton() {
-          // Don't create if it already exists
-          if (document.querySelector('.dark-mode-toggle')) {
-            return;
-          }
-
           const toggle = document.createElement('button');
           toggle.className = 'dark-mode-toggle';
           toggle.textContent = shouldUseDark ? '☀️ Light' : '🌙 Dark';
           toggle.setAttribute('aria-label', 'Toggle dark mode');
           toggle.onclick = toggleTheme;
           document.body.appendChild(toggle);
-
-          // Initialize theme after button is created
-          setTheme(shouldUseDark);
         }
 
-        // Wait for DOM to be fully ready
+        // Wait for DOM to be ready
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', createToggleButton);
-        } else if (document.readyState === 'interactive') {
-          // DOM is ready but stylesheets/images might not be loaded
-          // Use setTimeout to ensure body is available
-          window.setTimeout(createToggleButton, 0);
         } else {
-          // DOM is already fully loaded
           createToggleButton();
         }
 

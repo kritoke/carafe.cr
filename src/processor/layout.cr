@@ -108,29 +108,6 @@ class Carafe::Processor::Layout < Carafe::Processor
       end
     end
 
-    # Apply Minimal Mistakes skin class to HTML element
-    # In Jekyll, when minimal_mistakes_skin is set, it adds the class to <html>
-    if skin_value = @site.config["minimal_mistakes_skin"]?
-      skin_name = skin_value.as_s?
-      if skin_name && !skin_name.empty?
-        # Add skin-XXX class to HTML element
-        # Match patterns like: <html lang="en" class="js ..."> or <html>
-        skin_class = "skin-#{skin_name}"
-
-        # Check if HTML element already has a class attribute
-        if content =~ /<html[^>]*class=["']([^"']*)["'][^>]*>/
-          existing_classes = $1
-          unless existing_classes.includes?(skin_class)
-            # Add skin class to existing class attribute
-            content = content.gsub(/(<html[^>]*class=["'][^"']*)/, "\\1 #{skin_class}")
-          end
-        elsif content =~ /<html[^>]*>/
-          # HTML element exists but has no class attribute
-          content = content.gsub(/(<html[^>]*>)/, "\\1".gsub(">", " class=\"#{skin_class}\">"))
-        end
-      end
-    end
-
     output << content
     output << "\n"
     true

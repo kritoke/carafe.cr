@@ -58,7 +58,17 @@ module Liquid
   class RenderVisitor < Visitor
     # Override visit to create an 'include' hash for Jekyll compatibility
     def visit(node : Liquid::Block::JekyllInclude)
-      base_path = @template_path || "."
+      # Get template_path from context if available, otherwise use "."
+      base_path = if template_path_val = @data["template_path"]?
+                     case raw = template_path_val.raw
+                     when String
+                       raw
+                     else
+                       "."
+                     end
+                   else
+                     @template_path || "."
+                   end
 
       # Jekyll looks for includes in the _includes directory
       # We need to go up from _layouts to the site root, then into _includes
@@ -67,8 +77,8 @@ module Liquid
                      elsif base_path == "."
                        "_includes"
                      else
-                       # For theme layouts, check theme _includes
-                       base_path
+                       # For site directory or theme layouts, use _includes subdirectory
+                       File.join(base_path, "_includes")
                      end
 
       # Use liquid.cr's file finding logic with .html → .liquid fallback (Jekyll compatibility)
@@ -214,7 +224,8 @@ module Liquid
       end
 
       template = Template.parse template_content
-      template.template_path = base_path
+      # Set template_path to the root template path so nested includes work correctly
+      template.template_path = @template_path || "."
       @io << template.render(@data)
     end
   end

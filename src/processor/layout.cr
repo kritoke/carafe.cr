@@ -49,6 +49,9 @@ class Carafe::Processor::Layout < Carafe::Processor
       # Build Liquid context with site data
       liquid_context = Liquid::Context.new
 
+      # Set template_path in context so includes can find files
+      liquid_context.set("template_path", Liquid::Any.new(@site.site_dir))
+
       # Set site data - deeply sanitize to ensure no nil values
       site_hash = build_site_hash
       liquid_context.set("site", sanitize_hash(site_hash))
@@ -81,6 +84,8 @@ class Carafe::Processor::Layout < Carafe::Processor
       # Render the template
       begin
         template = Liquid::Template.parse(layout_template)
+        # Set template_path so includes can find files relative to the site directory
+        template.template_path = @site.site_dir
         content = template.render(liquid_context)
       rescue ex
         STDERR.puts "ERROR rendering layout #{layout_name}:"
@@ -94,9 +99,16 @@ class Carafe::Processor::Layout < Carafe::Processor
       end
     end
 
-    # Inject dark mode assets if enabled
+    # Inject dark mode assets if explicitly enabled via dark_mode config
+    # Note: When using Minimal Mistakes with minimal_mistakes_skin set, the theme's
+    # SCSS is already compiled with the appropriate colors - no class injection needed
     dark_mode_enabled = @site.config["dark_mode"]?
-    if dark_mode_enabled.nil? || dark_mode_enabled.as_s? == "true" || (dark_mode_enabled.raw == true)
+
+    should_inject_dark = dark_mode_enabled.nil? ||
+                         dark_mode_enabled.as_s? == "true" ||
+                         (dark_mode_enabled.raw == true)
+
+    if should_inject_dark
       dark_mode_html = Carafe::Plugins::CarafeDarkMode.generate_assets[:html]
       # Inject before closing </head> tag or at the end of </body>
       if content.includes?("</head>")

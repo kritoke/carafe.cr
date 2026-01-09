@@ -81,7 +81,7 @@ class Carafe::CLI
     when "version"
       display_version_and_exit
     when "build"
-      run_build
+      run_build(options)
     else
       puts "unrecognised command: #{command}"
     end
@@ -118,7 +118,8 @@ class Carafe::CLI
     end
   end
 
-  def run_build
+  def run_build(options = [] of String)
+    @option_parser.parse(options)
     site = create_site
 
     profile "Running generators" do

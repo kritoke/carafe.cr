@@ -123,6 +123,9 @@ class Carafe::Processor::Crinja < Carafe::Processor
     # Add email
     site_hash["email"] = Liquid::Any.new(@site.config["email"]?.try(&.as_s) || "")
 
+    # Add minimal_mistakes_skin for theme skin selection
+    site_hash["minimal_mistakes_skin"] = Liquid::Any.new(@site.config["minimal_mistakes_skin"]?.try(&.as_s) || "default")
+
     site_hash
   end
 

@@ -18,6 +18,132 @@ module Carafe::Plugins::CarafeDarkMode
         --dark-mode-code-bg: #2d2d2d;
       }
 
+      /* Minimal Mistakes Dark Skin - Applied when skin-dark class is on html element */
+      html.skin-dark body {
+        color: #eaeaea !important;
+        background-color: transparent !important;
+      }
+
+      html.skin-dark .masthead,
+      html.skin-dark .masthead__inner-wrap,
+      html.skin-dark .masthead__menu {
+        background-color: transparent !important;
+        border-bottom: 1px solid #51555d !important;
+      }
+
+      html.skin-dark nav.greedy-nav,
+      html.skin-dark .greedy-nav .visible-links,
+      html.skin-dark .greedy-nav .hidden-links,
+      html.skin-dark .greedy-nav li,
+      html.skin-dark .greedy-nav li a {
+        background-color: #252a34 !important;
+      }
+
+      html.skin-dark .greedy-nav .visible-links a,
+      html.skin-dark .greedy-nav li a {
+        color: #eaeaea !important;
+      }
+
+      html.skin-dark .greedy-nav .visible-links a:hover,
+      html.skin-dark .greedy-nav li a:hover {
+        color: #8cd2d5 !important;
+      }
+
+      html.skin-dark .hidden-links.hidden,
+      html.skin-dark .greedy-nav__toggle {
+        background-color: #252a34 !important;
+        border: 1px solid #51555d !important;
+      }
+
+      html.skin-dark .page__content {
+        color: #eaeaea !important;
+      }
+
+      html.skin-dark .page__title,
+      html.skin-dark h1,
+      html.skin-dark h2,
+      html.skin-dark h4,
+      html.skin-dark h5,
+      html.skin-dark h6 {
+        color: #eaeaea !important;
+      }
+
+      html.skin-dark h3 {
+        color: #eeeeee !important;
+      }
+
+      html.skin-dark a {
+        color: #8cd2d5 !important;
+      }
+
+      html.skin-dark code,
+      html.skin-dark pre {
+        background-color: #252a34 !important;
+        border-color: #51555d !important;
+        color: #eaeaea !important;
+      }
+
+      html.skin-dark blockquote {
+        border-left-color: #8cd2d5 !important;
+        background-color: #252a34 !important;
+        color: #b0b0b0 !important;
+      }
+
+      html.skin-dark table,
+      html.skin-dark th,
+      html.skin-dark td {
+        border-color: #51555d !important;
+      }
+
+      html.skin-dark th,
+      html.skin-dark tr:nth-child(even) {
+        background-color: #252a34 !important;
+      }
+
+      html.skin-dark .page__footer,
+      html.skin-dark .page__footer-follow,
+      html.skin-dark .page__footer-copyright {
+        background-color: #1a1d24 !important;
+        border-top: 1px solid #eeeeee !important;
+        color: #eeeeee !important;
+      }
+
+      html.skin-dark .page__footer a {
+        color: #8cd2d5 !important;
+      }
+
+      html.skin-dark .sidebar,
+      html.skin-dark .sidebar__right,
+      html.skin-dark .author__urls-wrapper {
+        background-color: #252a34 !important;
+        border-color: #51555d !important;
+      }
+
+      html.skin-dark .author__content p,
+      html.skin-dark .author__name {
+        color: #eaeaea !important;
+      }
+
+      html.skin-dark .archive__item,
+      html.skin-dark .list__item,
+      html.skin-dark .feature__wrapper {
+        border-color: #51555d !important;
+      }
+
+      html.skin-dark .archive__item-title {
+        color: #eaeaea !important;
+      }
+
+      html.skin-dark .archive__item-title a {
+        color: #8cd2d5 !important;
+      }
+
+      html.skin-dark .archive__item-excerpt,
+      html.skin-dark .archive__item-teaser {
+        color: #eaeaea !important;
+      }
+
+      /* Toggle-based dark mode styles */
       body.dark-mode {
         color: var(--dark-mode-text-color);
         background-color: var(--dark-mode-bg-color);

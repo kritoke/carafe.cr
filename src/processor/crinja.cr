@@ -104,6 +104,85 @@ class Carafe::Processor::Crinja < Carafe::Processor
     site_hash["time"] = Liquid::Any.new(Time.local.to_s)
     site_hash["collections"] = Liquid::Any.new(collections_array)
 
+    # Add direct access to each collection by name (Jekyll compatibility)
+    # This allows templates to use site.posts, site.pages, site.resources, etc.
+    @site.collections.each do |name, collection|
+      # Convert collection resources to Array(Liquid::Any)
+      docs_as_any = [] of Liquid::Any
+      collection.resources.each do |resource|
+        resource_hash = {} of String => Liquid::Any
+        resource_hash["url"] = Liquid::Any.new(resource.url.try(&.to_s) || "")
+        resource_hash["title"] = Liquid::Any.new(resource["title"]?.try(&.as_s) || "")
+        resource_hash["content"] = Liquid::Any.new(resource.content || "")
+        resource_hash["excerpt"] = Liquid::Any.new(resource["excerpt"]?.try(&.as_s) || "")
+
+        # Handle categories
+        categories_value = resource["categories"]?
+        if categories_value.is_a?(YAML::Any) && (categories_array = categories_value.as_a?)
+          resource_hash["categories"] = Liquid::Any.new(categories_array.map(&.as_s).map { |cat| Liquid::Any.new(cat) })
+        else
+          resource_hash["categories"] = Liquid::Any.new([] of Liquid::Any)
+        end
+
+        # Handle tags
+        tags_value = resource["tags"]?
+        if tags_value.is_a?(YAML::Any) && (tags_array = tags_value.as_a?)
+          resource_hash["tags"] = Liquid::Any.new(tags_array.map(&.as_s).map { |tag| Liquid::Any.new(tag) })
+        else
+          resource_hash["tags"] = Liquid::Any.new([] of Liquid::Any)
+        end
+
+        resource_hash["header"] = Liquid::Any.new({} of String => Liquid::Any)
+        docs_as_any << Liquid::Any.new(resource_hash)
+      end
+
+      # Expose collection directly by name
+      site_hash[name] = Liquid::Any.new(docs_as_any)
+    end
+
+    # Build tags hash (Jekyll compatibility)
+    # site.tags is an array of [tag_name, posts_array] pairs
+    tags_hash = {} of String => Array(Liquid::Any)
+    @site.collections.each do |collection_name, collection|
+      collection.resources.each do |resource|
+        tags_value = resource["tags"]?
+        if tags_value.is_a?(YAML::Any)
+          # Handle tags as array or string (Jekyll supports both)
+          tags_list = if tags_array = tags_value.as_a?
+                        tags_array.map(&.as_s)
+                      elsif tags_string = tags_value.as_s?
+                        # Split by comma or space
+                        tags_string.split(/[,\s]+/).map(&.strip).reject(&.empty?)
+                      else
+                        [] of String
+                      end
+
+          # Create resource hash for this resource
+          resource_hash = {} of String => Liquid::Any
+          resource_hash["url"] = Liquid::Any.new(resource.url.try(&.to_s) || "")
+          resource_hash["title"] = Liquid::Any.new(resource["title"]?.try(&.as_s) || "")
+          resource_hash["content"] = Liquid::Any.new(resource.content || "")
+          resource_hash["excerpt"] = Liquid::Any.new(resource["excerpt"]?.try(&.as_s) || "")
+
+          # Add resource to each tag's array
+          tags_list.each do |tag_name|
+            tags_hash[tag_name] ||= [] of Liquid::Any
+            tags_hash[tag_name] << Liquid::Any.new(resource_hash)
+          end
+        end
+      end
+    end
+
+    # Convert tags_hash to Liquid::Any format (array of [tag_name, resources] pairs)
+    tags_array = [] of Liquid::Any
+    tags_hash.each do |tag_name, resources|
+      tag_pair = [] of Liquid::Any
+      tag_pair << Liquid::Any.new(tag_name)
+      tag_pair << Liquid::Any.new(resources)
+      tags_array << Liquid::Any.new(tag_pair)
+    end
+    site_hash["tags"] = Liquid::Any.new(tags_array)
+
     # Add subtitle (used in masthead)
     site_hash["subtitle"] = Liquid::Any.new(@site.config["subtitle"]?.try(&.as_s) || "")
 

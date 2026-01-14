@@ -1,0 +1,65 @@
+name: Sync GitHub Issue to Beads Inbox
+on:
+  issues:
+    # Added 'labeled' so removing/adding the label triggers the sync
+    types: [opened, labeled, reopened]
+
+jobs:
+  update-inbox:
+    runs-on: ubuntu-latest
+    # Only run if the issue currently has the 'bead' label
+    if: contains(github.event.issue.labels.*.name, 'bead')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+
+      - name: Prepare Inbox Branch
+        run: |
+          if git ls-remote --exit-code --heads origin beads-inbox; then
+            git fetch origin beads-inbox
+            git checkout beads-inbox
+          else
+            git checkout -b beads-inbox
+          fi
+
+      - name: Create Bead file
+        run: |
+          FILENAME=$(echo "${{ github.event.issue.title }}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | cut -c1-50)
+          mkdir -p .beads
+          FILE_PATH=".beads/$(date +%Y%m%d)-${FILENAME}.md"
+          
+          {
+            echo "---"
+            echo "title: ${{ github.event.issue.title }}"
+            echo "status: todo"
+            echo "created_at: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+            echo "issue_url: ${{ github.event.issue.html_url }}"
+            echo "---"
+            echo ""
+            echo "${{ github.event.issue.body }}"
+          } > $FILE_PATH
+
+      - name: Commit and Force-Push
+        run: |
+          git add -f .beads/*.md
+          if ! git diff --cached --quiet; then
+            git commit -m "feat: mobile bead entry #${{ github.event.issue.number }}"
+            git push origin beads-inbox
+          else
+            echo "No changes to commit."
+          fi
+
+      - name: Comment on Issue
+        # This provides a confirmation notification on your phone
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --body "✅ **Bead Synced!** This task has been committed to the \`beads-inbox\` branch. It will be available next time you \`git merge\` at your desk."

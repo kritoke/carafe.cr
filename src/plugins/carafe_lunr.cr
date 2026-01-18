@@ -41,7 +41,18 @@ class Carafe::Plugins::Lunr < Carafe::Plugin
       site.files.each do |resource|
         url = resource.url
         next unless url
-        next if url.path.ends_with?(".css") || url.path.ends_with?(".js")
+        
+        # Skip binary files and non-content files
+        next if url.path.ends_with?(".css") || 
+                url.path.ends_with?(".js") || 
+                url.path.ends_with?(".map") || # Source maps
+                url.path.ends_with?(".dwarf") || 
+                url.path.ends_with?(".cr") ||  # Crystal source files
+                url.path.ends_with?(".gem") || # Ruby gems
+                url.path.ends_with?(".lock") || # Lock files
+                url.path.ends_with?(".nix") || # Nix files
+                url.path.includes?("carafe") || # Carafe executable files
+                url.path.includes?("README")
 
         doc = build_document(resource)
         documents << doc if doc

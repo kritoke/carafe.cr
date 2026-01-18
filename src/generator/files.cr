@@ -23,7 +23,9 @@ class Carafe::Generator::Files < Carafe::Generator
 
       if !includes.any? { |pattern| File.match?(pattern, slug) } && (
            slug.starts_with?('_') && !slug.starts_with?("_pages/") ||
-           # TODO: Don't traverse hidden directories in the first place.
+           # Filter out paths with "/_" to skip hidden directories (those starting with "_")
+           # Note: Dir.glob("**/*") doesn't skip hidden dirs, so we filter afterward
+           # Optimization: Could use recursive directory traversal to avoid this
            slug.includes?("/_") && !slug.starts_with?("_pages/") ||
            excludes.any? { |pattern| File.match?(pattern, slug) }
          )

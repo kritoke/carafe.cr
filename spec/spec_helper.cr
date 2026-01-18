@@ -3,7 +3,7 @@ require "uri"
 require "../src/site"
 
 # Load plugins
-require "../src/plugins/lunr"
+require "../src/plugins/carafe_lunr"
 require "../src/plugins/pagination"
 require "../src/plugins/remote_theme"
 

@@ -67,7 +67,7 @@ This project is a fork of the original [criss](https://github.com/straight-shoot
 - Enhance documentation
 - Create a new plugin architecture to incoporate popular Jekyll plugins
 - Performance optimizations
-- 
+- Easy to use drop in replacement for generating jekyll sites that is "batteries included."
 
 ---
 

@@ -38,7 +38,8 @@ struct Carafe::Pipeline
   end
 
   class Builder
-    # TODO: Read processors
+    # Processors are auto-discovered through the Processor macro system
+    # For configurable processors in the future, could read from site config
     def self.new(site)
       new(site, Processor.all_implementations)
     end

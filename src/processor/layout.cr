@@ -455,6 +455,12 @@ class Carafe::Processor::Layout < Carafe::Processor
     # Add email
     site_hash["email"] = Liquid::Any.new(@site.config["email"]?.try(&.as_s) || "")
 
+    # Add search configuration (for Minimal Mistakes theme search button)
+    site_hash["search"] = Liquid::Any.new(@site.config["search"]?.try(&.as_bool?) || false)
+    if search_provider = @site.config["search_provider"]?.try(&.as_s)
+      site_hash["search_provider"] = Liquid::Any.new(search_provider)
+    end
+
     site_hash
   end
 

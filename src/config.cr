@@ -61,7 +61,9 @@ class Carafe::Config
   property data_dir : String = "_data"
   property includes_dir : String = "_includes"
 
-  # TODO: Add support for Array(String)
+  # Jekyll compatibility: Could support Array(String) format like `collections: [posts, pages]`
+  # Currently only Hash format is supported: `collections: { posts: {...}, pages: {...} }`
+  # To add Array support: Normalize array to Hash during config loading with default Collection settings
   property collections : Hash(String, ::Carafe::Config::Collection) = {} of String => ::Carafe::Config::Collection
 
   # Handling Reading

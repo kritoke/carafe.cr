@@ -39,8 +39,6 @@ describe Carafe::Processor::Layout do
     io = IO::Memory.new
     processor.process(resource, IO::Memory.new("Laus deo semper"), io).should be_true
     io.to_s.should eq "<html>\n  <body>\n    Laus deo semper\n  </body>\n</html>\n"
-
-
   end
 
   it "loads from includes dir" do

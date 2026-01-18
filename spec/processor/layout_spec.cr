@@ -4,49 +4,52 @@ require "../../src/processor/layout"
 describe Carafe::Processor::Layout do
   it "renders layouts" do
     site = Carafe::Site.new
-    processor = Carafe::Processor::Layout.new
+    processor = Carafe::Processor::Layout.new(site)
     processor.layouts["page"] = {
-      Crinja::Template.new("<page>{{ content }}</page>"),
+      "<page>{{ content }}</page>",
       Carafe::Frontmatter{"layout" => "base"},
     }
     processor.layouts["base"] = {
-      Crinja::Template.new("<base>{{ content }}</base>"),
+      "<base>{{ content }}</base>",
       Carafe::Frontmatter.new,
     }
     resource = Carafe::Resource.new(site, "foo.md", frontmatter: Carafe::Frontmatter{"layout" => "page"})
 
-    processor.process(resource, "Laus deo semper").should eq "<base><page>Laus deo semper</page></base>\n"
+    io = IO::Memory.new
+    processor.process(resource, IO::Memory.new("Laus deo semper"), io).should be_true
+    io.to_s.should eq "<base><page>Laus deo semper</page></base>\n"
   end
 
   it "none layout" do
     site = Carafe::Site.new
-    processor = Carafe::Processor::Layout.new
+    processor = Carafe::Processor::Layout.new(site)
 
-    processor.process(Carafe::Resource.new(site, "foo.md", frontmatter: Carafe::Frontmatter{"layout" => "none"}), "Laus deo semper").should be_nil
+    io = IO::Memory.new
+    processor.process(Carafe::Resource.new(site, "foo.md", frontmatter: Carafe::Frontmatter{"layout" => "none"}), IO::Memory.new("Laus deo semper"), io).should be_false
 
-    processor.process(Carafe::Resource.new(site, "foo.md"), "Laus deo semper").should be_nil
+    io = IO::Memory.new
+    processor.process(Carafe::Resource.new(site, "foo.md"), IO::Memory.new("Laus deo semper"), io).should be_false
   end
 
   it "template loader" do
     site = Carafe::Site.new
-    processor = Carafe::Processor::Layout.new(layouts_path: "spec/fixtures/simple-site/_layouts")
+    processor = Carafe::Processor::Layout.new(site, layouts_path: "spec/fixtures/simple-site/_layouts")
     resource = Carafe::Resource.new(site, "foo.md", frontmatter: Carafe::Frontmatter{"layout" => "simple"})
 
-    processor.process(resource, "Laus deo semper").should eq <<-HTML
-      <html>
-        <body>
-          Laus deo semper
-        </body>
-      </html>
+    io = IO::Memory.new
+    processor.process(resource, IO::Memory.new("Laus deo semper"), io).should be_true
+    io.to_s.should eq "<html>\n  <body>\n    Laus deo semper\n  </body>\n</html>\n"
 
-      HTML
+
   end
 
   it "loads from includes dir" do
     site = Carafe::Site.new
     resource = Carafe::Resource.new(site, "foo.md", frontmatter: Carafe::Frontmatter{"layout" => "include"})
-    processor = Carafe::Processor::Layout.new(layouts_path: "spec/fixtures/simple-site/_layouts", includes_path: "spec/fixtures/simple-site/_includes")
+    processor = Carafe::Processor::Layout.new(site, layouts_path: "spec/fixtures/simple-site/_layouts", includes_path: "spec/fixtures/simple-site/_includes")
 
-    processor.process(resource, "content").should eq "FOO included\n\ncontent\n"
+    io = IO::Memory.new
+    processor.process(resource, IO::Memory.new("content"), io).should be_true
+    io.to_s.should eq "FOO included\n\ncontent\n"
   end
 end

@@ -10,10 +10,11 @@ class Carafe::Processor::Layout < Carafe::Processor
 
   getter layouts : Hash(String, {String, Frontmatter})
 
+  getter includes_path : String
+
   def initialize(@site : Site = Site.new, layouts_path : String? = nil, includes_path : String? = nil)
     @layouts_path = layouts_path || File.join(site.config.source, site.config.layouts_dir)
-    # includes_path is kept for API compatibility but not used in Liquid implementation
-    _ = includes_path
+    @includes_path = includes_path || File.join(site.config.source, site.config.includes_dir)
 
     @layouts = Hash(String, {String, Frontmatter}).new do |hash, key|
       hash[key] = load_layout(key)
@@ -69,8 +70,8 @@ class Carafe::Processor::Layout < Carafe::Processor
       paginator_hash = build_paginator_hash(resource)
       liquid_context.set("paginator", sanitize_hash(paginator_hash))
 
-      # Set content
-      liquid_context.set("content", content)
+      # Set content (trim to avoid extra newlines)
+      liquid_context.set("content", content.strip)
 
       # Set layout - deeply sanitize
       layout_hash = build_layout_hash(frontmatter)
@@ -104,9 +105,8 @@ class Carafe::Processor::Layout < Carafe::Processor
     # SCSS is already compiled with the appropriate colors - no class injection needed
     dark_mode_enabled = @site.config["dark_mode"]?
 
-    should_inject_dark = dark_mode_enabled.nil? ||
-                         dark_mode_enabled.as_s? == "true" ||
-                         (dark_mode_enabled.raw == true)
+    should_inject_dark = !dark_mode_enabled.nil? &&
+                         (dark_mode_enabled.as_s? == "true" || dark_mode_enabled.raw == true)
 
     if should_inject_dark
       dark_mode_html = Carafe::Plugins::CarafeDarkMode.generate_assets[:html]
@@ -120,7 +120,9 @@ class Carafe::Processor::Layout < Carafe::Processor
       end
     end
 
-    output << content
+    # Ensure output always ends with exactly one newline
+    trimmed = content.rstrip
+    output << trimmed
     output << "\n"
     true
   end
@@ -132,7 +134,7 @@ class Carafe::Processor::Layout < Carafe::Processor
   # are NOT processed here - they are handled by the JekyllInclude tag during
   # Liquid rendering to properly support parameter passing.
   private def process_includes(template : String, resource : Resource) : String
-    includes_dir = File.join(@site.site_dir, @site.config.includes_dir)
+    includes_dir = @includes_path
     max_iterations = 100 # Prevent infinite loops
     iteration = 0
 
@@ -178,7 +180,7 @@ class Carafe::Processor::Layout < Carafe::Processor
           if File.exists?(include_path)
             # Read and return the file content
             # This content may contain more includes, which will be processed in the next iteration
-            include_content = File.read(include_path)
+            include_content = File.read(include_path).rstrip
 
             # Remove self-referential includes to prevent infinite loops
             # If toc.html contains "{% include toc.html %}", remove it
@@ -546,6 +548,9 @@ class Carafe::Processor::Layout < Carafe::Processor
     # Get URL from resource
     url = resource.url.try(&.to_s) || ""
     path = resource.slug || ""
+
+    # Add page name (filename)
+    page_hash["name"] = Liquid::Any.new(resource.name)
 
     # For index.html files, normalize the URL to "/"
     if url.ends_with?("/index.html") || url == "/index.html"

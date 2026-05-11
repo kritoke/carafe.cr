@@ -1,5 +1,6 @@
 require "../generator"
 require "yaml"
+require "../util/security"
 
 class Carafe::Generator::Data < Carafe::Generator
   def priority : Priority
@@ -32,6 +33,12 @@ class Carafe::Generator::Data < Carafe::Generator
           key = File.basename(entry, ext)
           content = File.read(full_path)
 
+          # Security: Validate content size before parsing
+          unless Security.validate_content_size(content)
+            STDERR.puts "Warning: Skipping #{full_path} - content exceeds maximum size"
+            next
+          end
+
           if ext == ".json"
             # Parse JSON - convert to string then parse as YAML
             json_obj = JSON.parse(content)
@@ -62,6 +69,12 @@ class Carafe::Generator::Data < Carafe::Generator
         if ext == ".yml" || ext == ".yaml" || ext == ".json"
           key = File.basename(entry, ext)
           content = File.read(full_path)
+
+          # Security: Validate content size before parsing
+          unless Security.validate_content_size(content)
+            STDERR.puts "Warning: Skipping #{full_path} - content exceeds maximum size"
+            next
+          end
 
           if ext == ".json"
             # Parse JSON - convert to string then parse as YAML

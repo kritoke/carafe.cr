@@ -2,6 +2,7 @@ require "liquid"
 require "../processor"
 require "../jekyll_compat"
 require "../plugins/content/dark_mode"
+require "../util/security"
 
 class Carafe::Processor::Layout < Carafe::Processor
   transforms "*": "output"
@@ -79,12 +80,20 @@ class Carafe::Processor::Layout < Carafe::Processor
   end
 
   def load_layout(layout_name : String) : {String, Frontmatter}
-    file_pattern = File.join(File.expand_path(layouts_path, @site.site_dir), "#{layout_name}.*")
+    # Security: Sanitize the layout name to prevent path traversal
+    safe_name = Security.sanitize_filename(layout_name)
+    raise "Invalid layout name" if safe_name.nil?
+
+    file_pattern = File.join(File.expand_path(layouts_path, @site.site_dir), "#{safe_name}.*")
     file_path = Dir[file_pattern].first?
 
     raise "Layout not found: #{layout_name.inspect} (layouts_path: #{layouts_path}) at #{file_pattern}" unless file_path
 
-    File.open(file_path) do |file|
+    # Security: Validate the file is within the layouts directory
+    safe_path = Security.sanitize_path(File.expand_path(layouts_path, @site.site_dir), file_path)
+    raise "Layout path traversal detected" if safe_path.nil?
+
+    File.open(safe_path) do |file|
       frontmatter = Frontmatter.read_frontmatter(file) || Frontmatter.new
       content = file.gets_to_end
 

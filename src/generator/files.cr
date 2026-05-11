@@ -1,3 +1,5 @@
+require "../util/security"
+
 class Carafe::Generator::Files < Carafe::Generator
   getter priority : Priority = Priority::HIGH
 
@@ -18,6 +20,11 @@ class Carafe::Generator::Files < Carafe::Generator
   def self.load_files(glob, directory, excludes = [] of String, includes = [] of String, &)
     Dir.glob(glob) do |full_path|
       next if File.directory?(full_path)
+
+      # Security: Ensure the file is within the expected directory
+      unless full_path.starts_with?(File.expand_path(directory) + "/")
+        next
+      end
 
       slug = full_path.lchop(directory).lchop('/')
 
@@ -44,7 +51,11 @@ class Carafe::Generator::Files < Carafe::Generator
     end
   end
 
-  def self.load_content(file_path) : {Frontmatter?, String}
+  def self.load_content(file_path : String) : {Frontmatter?, String}
+    # Security: Validate path doesn't contain traversal
+    return {nil, ""} unless Security.sanitize_filename(File.basename(file_path))
+
+    # Security: Ensure the file exists
     unless File.exists?(file_path)
       raise "File missing #{file_path}"
     end

@@ -1,3 +1,6 @@
+require "yaml"
+require "./util/security"
+
 struct Carafe::Frontmatter
   def initialize(@data = {} of YAML::Any => YAML::Any)
   end
@@ -43,7 +46,10 @@ struct Carafe::Frontmatter
 
     frontmatter_io = IO::Delimited.new(io, "\n---")
 
-    frontmatter = parse(frontmatter_io)
+    # Read content as string for size validation
+    content = frontmatter_io.gets_to_end
+
+    frontmatter = parse(content)
 
     if rest_of_line = io.gets
       rest_of_line.each_char do |char|
@@ -54,7 +60,12 @@ struct Carafe::Frontmatter
     frontmatter
   end
 
-  def self.parse(source) : Frontmatter?
+  def self.parse(source : String) : Frontmatter?
+    # Security: Validate content size to prevent DoS
+    unless Security.validate_content_size(source)
+      raise "Frontmatter content exceeds maximum size"
+    end
+
     yaml = YAML.parse(source)
 
     case raw = yaml.raw

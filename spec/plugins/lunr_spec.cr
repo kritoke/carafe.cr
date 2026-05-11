@@ -1,17 +1,17 @@
 require "../spec_helper"
 
-describe Carafe::Plugins::Lunr do
+describe Carafe::Plugins::LunrPlugin do
   describe "#enabled?" do
     it "returns false when search is not set" do
       config = Carafe::Config.new
-      plugin = Carafe::Plugins::Lunr.new
+      plugin = Carafe::Plugins::LunrPlugin.new
       plugin.enabled?(config).should be_false
     end
 
     it "returns true when search is set to true" do
       config = Carafe::Config.new
       config["search"] = YAML::Any.new(true)
-      plugin = Carafe::Plugins::Lunr.new
+      plugin = Carafe::Plugins::LunrPlugin.new
       plugin.enabled?(config).should be_true
     end
 
@@ -20,7 +20,7 @@ describe Carafe::Plugins::Lunr do
       hash = Hash(YAML::Any, YAML::Any).new
       hash[YAML::Any.new("index")] = YAML::Any.new("search.json")
       config["search"] = YAML::Any.new(hash)
-      plugin = Carafe::Plugins::Lunr.new
+      plugin = Carafe::Plugins::LunrPlugin.new
       plugin.enabled?(config).should be_true
     end
   end
@@ -29,20 +29,20 @@ describe Carafe::Plugins::Lunr do
     it "adds Lunr generator to site" do
       config = Carafe::Config.new
       site = Carafe::Site.new(config)
-      plugin = Carafe::Plugins::Lunr.new
+      plugin = Carafe::Plugins::LunrPlugin.new
 
       plugin.register(site)
 
       site.generators.size.should be > 0
-      site.generators.find { |generator| generator.is_a?(Carafe::Plugins::Lunr::Generator) }.should_not be_nil
+      site.generators.find { |generator| generator.is_a?(Carafe::Plugins::LunrPlugin::Generator) }.should_not be_nil
     end
   end
 end
 
-describe Carafe::Plugins::Lunr::Generator do
+describe Carafe::Plugins::LunrPlugin::Generator do
   it "has LOW priority" do
     site = Carafe::Site.new
-    generator = Carafe::Plugins::Lunr::Generator.new(site)
+    generator = Carafe::Plugins::LunrPlugin::Generator.new(site)
     generator.priority.should eq Carafe::Priority::LOW
   end
 

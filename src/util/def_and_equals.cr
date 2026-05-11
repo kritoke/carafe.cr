@@ -9,14 +9,14 @@ module Util::DefAndEquals
     {% if @type.class? || @type.struct? %}
       def ==(other : self)
         {% for field in @type.instance_vars %}
-          return false unless @{{field.id}} == other.@{{field.id}}
+          return false unless @{{ field.id }} == other.@{{ field.id }}
         {% end %}
         true
       end
 
       def hash(hasher)
         {% for field in @type.instance_vars %}
-          hasher = @{{field.id}}.hash(hasher)
+          hasher = @{{ field.id }}.hash(hasher)
         {% end %}
         hasher
       end

@@ -1,5 +1,5 @@
 require "./spec_helper"
-require "../src/plugin"
+require "../src/plugins/plugin"
 
 describe Carafe::PluginManager do
   it "initializes with a site" do

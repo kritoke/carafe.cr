@@ -110,6 +110,11 @@ class Carafe::Resource
       path += ".html"
     end
 
+    # Strip .html extension for clean URLs (Jekyll-style)
+    if path.ends_with?(".html") && !path.ends_with?("index.html")
+      path = path.chomp(".html")
+    end
+
     URI.parse(path)
   end
 

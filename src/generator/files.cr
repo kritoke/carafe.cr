@@ -6,7 +6,7 @@ class Carafe::Generator::Files < Carafe::Generator
 
   def generate : Nil
     search_path = File.expand_path(site.config.source, site.site_dir)
-    Files.load_files(File.join(search_path, "**/*"), search_path, excludes: site.config.exclude, includes: site.config.include) do |slug, content, frontmatter|
+    Files.load_files(File.join(search_path, "**/*"), search_path, excludes: ["var"] + site.config.exclude, includes: site.config.include) do |slug, content, frontmatter|
       defaults = site.defaults_for(slug, "pages")
       resource = Carafe::Resource.new(site, slug, content, frontmatter: frontmatter, defaults: defaults)
       resource.url = Carafe::Resource.url_for(resource)
@@ -27,7 +27,9 @@ class Carafe::Generator::Files < Carafe::Generator
            # Note: Dir.glob("**/*") doesn't skip hidden dirs, so we filter afterward
            # Optimization: Could use recursive directory traversal to avoid this
            slug.includes?("/_") && !slug.starts_with?("_pages/") ||
-           excludes.any? { |pattern| File.match?(pattern, slug) }
+           excludes.any? { |pattern| slug.starts_with?(pattern) || File.match?(pattern, slug) } ||
+           # Explicitly exclude any path containing "var/" (temporary files)
+           slug.includes?("var/")
          )
         next
       end

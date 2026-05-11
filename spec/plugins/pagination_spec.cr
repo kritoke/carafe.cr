@@ -1,24 +1,24 @@
 require "../spec_helper"
 
-describe Carafe::Plugins::Pagination do
+describe Carafe::Plugins::PaginationPlugin do
   describe "#enabled?" do
     it "returns false when paginate is not set" do
       config = Carafe::Config.new
-      plugin = Carafe::Plugins::Pagination.new
+      plugin = Carafe::Plugins::PaginationPlugin.new
       plugin.enabled?(config).should be_false
     end
 
     it "returns true when paginate is set to a number" do
       config = Carafe::Config.new
       config["paginate"] = YAML::Any.new(5)
-      plugin = Carafe::Plugins::Pagination.new
+      plugin = Carafe::Plugins::PaginationPlugin.new
       plugin.enabled?(config).should be_true
     end
 
     it "returns true when paginate is set to true" do
       config = Carafe::Config.new
       config["paginate"] = YAML::Any.new(true)
-      plugin = Carafe::Plugins::Pagination.new
+      plugin = Carafe::Plugins::PaginationPlugin.new
       plugin.enabled?(config).should be_true
     end
   end
@@ -27,17 +27,17 @@ describe Carafe::Plugins::Pagination do
     it "adds the pagination generator to the site" do
       config = Carafe::Config.new
       site = Carafe::Site.new(config)
-      plugin = Carafe::Plugins::Pagination.new
+      plugin = Carafe::Plugins::PaginationPlugin.new
 
       plugin.register(site)
 
       site.generators.size.should be > 0
-      site.generators.find { |generator| generator.is_a?(Carafe::Plugins::Pagination::Generator) }.should_not be_nil
+      site.generators.find { |generator| generator.is_a?(Carafe::Plugins::PaginationPlugin::Generator) }.should_not be_nil
     end
   end
 end
 
-describe Carafe::Plugins::Pagination::Generator do
+describe Carafe::Plugins::PaginationPlugin::Generator do
   it "adds paginator to resource" do
     site = Carafe::Site.new
     site.posts << Carafe::Resource.new(site, "baz.md")
@@ -50,7 +50,7 @@ describe Carafe::Plugins::Pagination::Generator do
     })
     site.files << index
 
-    generator = Carafe::Plugins::Pagination::Generator.new(site)
+    generator = Carafe::Plugins::PaginationPlugin::Generator.new(site)
     generator.generate
 
     index.paginator.should_not be_nil
@@ -70,7 +70,7 @@ describe Carafe::Plugins::Pagination::Generator do
     })
     site.files << index
 
-    generator = Carafe::Plugins::Pagination::Generator.new(site)
+    generator = Carafe::Plugins::PaginationPlugin::Generator.new(site)
     generator.generate
 
     index.paginator.as(Carafe::Paginator).items.map(&.slug).should eq ["bar.md", "baz.md"]
@@ -90,18 +90,16 @@ describe Carafe::Plugins::Pagination::Generator do
     })
     site.files << index
 
-    generator = Carafe::Plugins::Pagination::Generator.new(site)
+    generator = Carafe::Plugins::PaginationPlugin::Generator.new(site)
     generator.generate
 
-    # First page should have 2 items
     index.paginator.as(Carafe::Paginator).items.size.should eq 2
-    # Should have added a second page resource
     site.files.size.should eq 2
   end
 
   it "has LOW priority" do
     site = Carafe::Site.new
-    generator = Carafe::Plugins::Pagination::Generator.new(site)
+    generator = Carafe::Plugins::PaginationPlugin::Generator.new(site)
     generator.priority.should eq Carafe::Priority::LOW
   end
 end

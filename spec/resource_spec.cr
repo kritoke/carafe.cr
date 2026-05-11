@@ -6,6 +6,7 @@ def test_resource(slug, frontmatter = nil, site = Carafe::Site.new, output_ext =
   if output_ext
     resource.output_ext = output_ext
   end
+  resource.url = Carafe::Resource.url_for(resource)
   resource
 end
 

@@ -83,21 +83,27 @@ class Carafe::Processor::Sass < Carafe::Processor
 
   # Build a simplified site hash for Liquid rendering in SCSS
   private def build_site_hash(site : Site) : Hash(String, Liquid::Any)
-    site_hash = {} of String => Liquid::Any
+    site_hash = build_basic_sass_site_config(site)
+    add_unmapped_sass_config(site_hash, site)
+    site_hash
+  end
 
-    # Add commonly used site config values
+  private def build_basic_sass_site_config(site : Site) : Hash(String, Liquid::Any)
+    site_hash = {} of String => Liquid::Any
     site_hash["title"] = Liquid::Any.new(site.config["title"]?.try(&.as_s) || "")
     site_hash["name"] = Liquid::Any.new(site.config["name"]?.try(&.as_s) || "")
     site_hash["description"] = Liquid::Any.new(site.config["description"]?.try(&.as_s) || "")
     site_hash["url"] = Liquid::Any.new(site.config["url"]?.try(&.as_s) || "")
     site_hash["baseurl"] = Liquid::Any.new(site.config["baseurl"]?.try(&.as_s) || "")
 
-    # Add minimal_mistakes_skin if present
     if skin = site.config["minimal_mistakes_skin"]?
       site_hash["minimal_mistakes_skin"] = Liquid::Any.new(skin.as_s)
     end
 
-    # Add any unmapped YAML config values
+    site_hash
+  end
+
+  private def add_unmapped_sass_config(site_hash : Hash(String, Liquid::Any), site : Site) : Nil
     site.config.yaml_unmapped.each do |k, v|
       key = k.to_s
       next if site_hash.has_key?(key)
@@ -110,7 +116,6 @@ class Carafe::Processor::Sass < Carafe::Processor
       when Nil
         # Skip nil values
       when Hash
-        # Convert nested hashes
         hash = {} of String => Liquid::Any
         raw.each do |yaml_key, yaml_value|
           hash_key = yaml_key.is_a?(String) ? yaml_key : yaml_key.to_s
@@ -124,8 +129,6 @@ class Carafe::Processor::Sass < Carafe::Processor
         site_hash[key] = Liquid::Any.new(raw.to_s)
       end
     end
-
-    site_hash
   end
 
   # Build a simplified page hash for Liquid rendering in SCSS

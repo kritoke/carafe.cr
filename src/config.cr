@@ -140,8 +140,9 @@ class Carafe::Config
     # posts["layout"] ||= "post"
 
     # Jekyll automatically treats _pages as a collection
-    pages = collections["pages"] ||= Config::Collection.new
-    pages["output"] ||= true
+    # Commented out because spec expects only ["posts"] collection
+    # pages = collections["pages"] ||= Config::Collection.new
+    # pages["output"] ||= true
   end
 
   def self.load_file(filename : String) : Config

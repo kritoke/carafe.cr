@@ -5,13 +5,12 @@ describe Carafe::Pipeline do
   it "#pipe" do
     site = Carafe::Site.new
     processors = [
-      Carafe::Processor::Liquid.new(site),
       Carafe::Processor::Markdown.new(site),
-    ]
+    ] of Carafe::Processor
     pipeline = Carafe::Pipeline.new processors
 
-    resource = Carafe::Resource.new(site, "sample.md", "Foo **{{ page }}**")
-    pipeline.pipe(resource).should eq "<p>Foo <strong>sample.md</strong></p>\n"
+    resource = Carafe::Resource.new(site, "sample.md", "Foo **bar**")
+    pipeline.pipe(resource).should eq "<p>Foo <strong>bar</strong></p>\n"
   end
 end
 
@@ -29,17 +28,11 @@ describe Carafe::Pipeline::Builder do
       Carafe::Processor::Markdown,
       Carafe::Processor::Layout,
     ]
-    builder.create_pipeline("jinja.markdown").processors.map(&.class).should eq [
-      Carafe::Processor::Liquid,
-      Carafe::Processor::Markdown,
-      Carafe::Processor::Layout,
-    ]
     builder.create_pipeline("sass").processors.map(&.class).should eq [
       Carafe::Processor::Sass,
       Carafe::Processor::Layout,
     ]
-    builder.create_pipeline("jinja.html").processors.map(&.class).should eq [
-      Carafe::Processor::Liquid,
+    builder.create_pipeline("html").processors.map(&.class).should eq [
       Carafe::Processor::Layout,
     ]
   end

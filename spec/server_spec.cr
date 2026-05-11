@@ -13,17 +13,15 @@ def wait_for_server_ready(url : String, timeout : Time::Span = 5.seconds)
         client.connect_timeout = 1.second
         client.read_timeout = 1.second
         client.get(uri.request_target)
-        return # Server is up and responding
+        return
       end
     rescue ex : IO::Error | Socket::Error
-      # Server not ready or connection refused, continue retrying
     end
 
     if Time.monotonic - started_at > timeout
       raise "Server at #{url} did not become ready within #{timeout}"
     end
 
-    # Add a small delay before retrying
     sleep 0.05.seconds
   end
 end
@@ -34,10 +32,22 @@ describe Carafe::Server do
       config = Carafe::Config.load(File.join(FIXTURE_PATH, "simple-site"))
       config.destination = path
       config.port = 4001
+
       site = Carafe::Site.new(config)
       site.run_generators
       builder = Carafe::Builder.new(site)
       builder.build
+
+      # Debug output
+      puts "Destination directory: #{path}"
+      puts "Directory contents:"
+      if Dir.exists?(path)
+        Dir.glob(File.join(path, "**/*")) do |file|
+          puts "  #{file}"
+        end
+      else
+        puts "Directory does not exist!"
+      end
 
       # Verify files exist before starting server
       File.exists?(File.join(path, "index.html")).should be_true, "index.html missing in #{path}"

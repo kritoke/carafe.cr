@@ -1,0 +1,62 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1771008912,
+        "narHash": "sha256-gf2AmWVTs8lEq7z/3ZAsgnZDhWIckkb+ZnAo5RzSxJg=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "a82ccc39b39b621151d6732718e3e250109076fa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1767640445,
+        "narHash": "sha256-UWYqmD7JFBEDBHWYcqE6s6c77pWdcU/i+bwD6XxMb8A=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "9f0c42f8bc7151b8e7e5840fb3bd454ad850d8c5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "openspec": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_2"
+      },
+      "locked": {
+        "lastModified": 1771230882,
+        "narHash": "sha256-+XU5h8QLfEC9nYsBqmQkVP8UpZIlLdlglZZV4L1T4lY=",
+        "owner": "Fission-AI",
+        "repo": "OpenSpec",
+        "rev": "fbef555041d89d98eec623dc5efaa4d1be2cae29",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Fission-AI",
+        "repo": "OpenSpec",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "openspec": "openspec"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

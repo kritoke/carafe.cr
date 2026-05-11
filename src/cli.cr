@@ -161,6 +161,17 @@ class Carafe::CLI
 
     server = Carafe::Server.new(site)
 
+    # Register cleanup handler for serve command
+    at_exit do
+      puts "Cleaning up temporary files..."
+      # Call cleanup on all plugins
+      site.plugin_manager.plugins.each do |plugin|
+        if plugin.responds_to?(:cleanup)
+          plugin.cleanup(site)
+        end
+      end
+    end
+
     server.start
   end
 

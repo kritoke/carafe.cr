@@ -1,13 +1,42 @@
-/doc/
-/lib/
-/bin/
-/.shards/
-.DS_store
-_site/
-*.dwarf
-.beads
-# bv (beads viewer) local config and caches
-.bv/
+# Nix
+.direnv/
+.flake/
+result
+result-*
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+bin/
+*.cr
+*.beam
+*.o
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Logs
+*.log
+
+# Editor
 .vscode/
-.beads/
-.gitattributes
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Planning
+planning/
+
+# Crystal
+lib/
+
+# Jekyll
+_site/
+public/

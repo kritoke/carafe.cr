@@ -1,0 +1,9 @@
+# Catseye project configuration for carafe.cr
+
+[taint.suppress]
+# SSRF: URLs from operator-controlled _config.yml with fixed github.com prefix
+SSRF = ["**/plugins/themes/remote_theme.cr"]
+# PathTraversal: config filenames hardcoded, include_handler uses Security.sanitize_filename
+PathTraversal = ["**/config.cr", "**/jekyll_compat/include_handler.cr"]
+# ScentLeakage: logging public GitHub URLs and error messages (developer-facing)
+ScentLeakage = ["**/plugins/themes/remote_theme.cr", "**/processor/layout.cr"]

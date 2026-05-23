@@ -31,7 +31,7 @@ class Carafe::Generator::Collections < Carafe::Generator::Files
       collection_paths << path
     end
 
-    new(site, collections_paths)
+    new(site, collection_paths)
   end
 
   def initialize(site : Site, @collection_paths : Array(String))

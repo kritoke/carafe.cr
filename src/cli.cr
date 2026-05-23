@@ -148,12 +148,18 @@ class Carafe::CLI
 
     site = create_site
 
+    # Register filters before server starts
+    JekyllCompat.register_filters!
+
     if port_val = port
       site.config.port = port_val
     end
     if host_val = host
       site.config.host = host_val
     end
+
+    # Set baseurl for filters
+    JekyllCompat::LiquidFilters.baseurl = site.config.baseurl
 
     profile "Running generators" do
       site.run_generators

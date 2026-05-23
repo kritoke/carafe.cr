@@ -1,16 +1,12 @@
 class Carafe::Paginator
   getter items : Array(Resource)
-
   getter index : Int32
-
   getter pages : Array(Resource)
+  getter per_page_limit : Int32  # Store configured per-page limit
 
   property! next : Resource
-
   property! previous : Resource
-
   property! first : Resource
-
   property! last : Resource
 
   # Jekyll compatibility methods
@@ -19,7 +15,7 @@ class Carafe::Paginator
   end
 
   def per_page : Int32
-    @items.size
+    @per_page_limit
   end
 
   def total_pages : Int32
@@ -63,6 +59,7 @@ class Carafe::Paginator
     end
   end
 
-  def initialize(@items : Array(Resource), @index : Int, @pages : Array(Resource))
+  def initialize(@items : Array(Resource), @index : Int, @pages : Array(Resource), @per_page_limit : Int32? = nil)
+    @per_page_limit ||= @items.size
   end
 end

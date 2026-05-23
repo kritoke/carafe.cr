@@ -24,15 +24,19 @@ describe Carafe::Pipeline::Builder do
     site = Carafe::Site.new
     builder = Carafe::Pipeline::Builder.new(site)
 
+    # Pipeline order: Liquid (wildcard processor) first, then specific processor, then Layout
     builder.create_pipeline("markdown").processors.map(&.class).should eq [
+      Carafe::Processor::Liquid,
       Carafe::Processor::Markdown,
       Carafe::Processor::Layout,
     ]
     builder.create_pipeline("sass").processors.map(&.class).should eq [
+      Carafe::Processor::Liquid,
       Carafe::Processor::Sass,
       Carafe::Processor::Layout,
     ]
     builder.create_pipeline("html").processors.map(&.class).should eq [
+      Carafe::Processor::Liquid,
       Carafe::Processor::Layout,
     ]
   end

@@ -1,4 +1,5 @@
 require "spec"
+require "../spec_helper"
 require "../../src/processor/sass"
 
 describe Carafe::Processor::Sass do

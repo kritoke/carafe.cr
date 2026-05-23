@@ -1,21 +1,48 @@
 require "sassd"
-require "../processor"
 require "liquid"
+require "../processor"
+
+module LiquidAnyHelper
+  extend self
+
+  def new_string(value : String) : Liquid::Any
+    Liquid::Any.new(value)
+  end
+
+  def new_hash(value : Hash(String, LiquidAny)) : Liquid::Any
+    Liquid::Any.new(value)
+  end
+
+  def new_array(value : Array(LiquidAny)) : Liquid::Any
+    Liquid::Any.new(value)
+  end
+
+  def new_numeric(value : Int32 | Int64 | Float64 | Bool) : Liquid::Any
+    Liquid::Any.new(value)
+  end
+end
 
 class Carafe::Processor::Sass < Carafe::Processor
+  # Type placeholder for Liquid::Any - used in hash type declarations
+  private alias LiquidAnyType = LiquidAny
+
   transforms "sass": "css", "scss": "css"
 
   getter include_path : String
   property site : Site?
 
   def initialize(site : Site)
-    # Default to the sass binary located within the carafe project directory.
+    # Default to the sass binary bundled with sassd.cr
     # Using {{__DIR__}} ensures we find the binary relative to the source code
     # even when carafe is executed from a different working directory.
-    project_bin = File.expand_path("../../bin/sass", {{ __DIR__ }})
+    bundled_sass = File.expand_path("../../lib/sassd/bin/sass", {{ __DIR__ }})
 
-    if File.exists?(project_bin)
-      ::Sass.bin_path = project_bin
+    # Set min_version to match our bundled sass binary
+    # This can be overridden by config.sass_bin if using a different version
+    ::Sass.min_version = "1.100.0"
+
+    if File.exists?(bundled_sass)
+      ::Sass.bin_path = bundled_sass
     end
 
     if bin = site.config.sass_bin
@@ -49,7 +76,13 @@ class Carafe::Processor::Sass < Carafe::Processor
       end
     end
 
-    rendered = ::Sass.compile(source, include_path: File.join(@site_dir, include_path), is_indented_syntax_src: indented_syntax)
+    # Use the new Config-based API for cleaner configuration
+    config = ::Sass::Config.new(
+      style: "expanded",
+      load_paths: [File.join(@site_dir, @include_path)],
+      is_indented_syntax_src: indented_syntax
+    )
+    rendered = ::Sass.compile(source, config)
     output << rendered
 
     true
@@ -58,19 +91,19 @@ class Carafe::Processor::Sass < Carafe::Processor
   # Render Liquid variables in SCSS source
   # This allows themes to use {{ site.variable }} syntax in SCSS files
   private def render_liquid_variables(source : String, site : Site, resource : Resource) : String
-    liquid_context = Liquid::Context.new
+    liquid_context = LiquidContext.new
 
     # Set site data - deeply sanitize to ensure no nil values
     site_hash = build_site_hash(site)
-    liquid_context.set("site", Liquid::Any.new(site_hash))
+    liquid_context.set("site", LiquidAnyHelper.new_hash(site_hash))
 
     # Set page data
     page_hash = build_page_hash(resource)
-    liquid_context.set("page", Liquid::Any.new(page_hash))
+    liquid_context.set("page", LiquidAnyHelper.new_hash(page_hash))
 
     # Render the Liquid template
     begin
-      template = Liquid::Template.parse(source)
+      template = LiquidTemplate.parse(source)
       rendered = template.render(liquid_context)
       rendered
     rescue ex
@@ -82,61 +115,61 @@ class Carafe::Processor::Sass < Carafe::Processor
   end
 
   # Build a simplified site hash for Liquid rendering in SCSS
-  private def build_site_hash(site : Site) : Hash(String, Liquid::Any)
+  private def build_site_hash(site : Site) : Hash(String, LiquidAnyType)
     site_hash = build_basic_sass_site_config(site)
     add_unmapped_sass_config(site_hash, site)
     site_hash
   end
 
-  private def build_basic_sass_site_config(site : Site) : Hash(String, Liquid::Any)
-    site_hash = {} of String => Liquid::Any
-    site_hash["title"] = Liquid::Any.new(site.config["title"]?.try(&.as_s) || "")
-    site_hash["name"] = Liquid::Any.new(site.config["name"]?.try(&.as_s) || "")
-    site_hash["description"] = Liquid::Any.new(site.config["description"]?.try(&.as_s) || "")
-    site_hash["url"] = Liquid::Any.new(site.config["url"]?.try(&.as_s) || "")
-    site_hash["baseurl"] = Liquid::Any.new(site.config["baseurl"]?.try(&.as_s) || "")
+  private def build_basic_sass_site_config(site : Site) : Hash(String, LiquidAnyType)
+    site_hash = new_liquid_any_hash
+    site_hash["title"] = LiquidAnyHelper.new_string(site.config["title"]?.try(&.as_s) || "")
+    site_hash["name"] = LiquidAnyHelper.new_string(site.config["name"]?.try(&.as_s) || "")
+    site_hash["description"] = LiquidAnyHelper.new_string(site.config["description"]?.try(&.as_s) || "")
+    site_hash["url"] = LiquidAnyHelper.new_string(site.config["url"]?.try(&.as_s) || "")
+    site_hash["baseurl"] = LiquidAnyHelper.new_string(site.config["baseurl"]?.try(&.as_s) || "")
 
     if skin = site.config["minimal_mistakes_skin"]?
-      site_hash["minimal_mistakes_skin"] = Liquid::Any.new(skin.as_s)
+      site_hash["minimal_mistakes_skin"] = LiquidAnyHelper.new_string(skin.as_s)
     end
 
     site_hash
   end
 
-  private def add_unmapped_sass_config(site_hash : Hash(String, Liquid::Any), site : Site) : Nil
+  private def add_unmapped_sass_config(site_hash : Hash(String, LiquidAnyType), site : Site) : Nil
     site.config.yaml_unmapped.each do |k, v|
       key = k.to_s
       next if site_hash.has_key?(key)
 
       case raw = v.raw
       when String
-        site_hash[key] = Liquid::Any.new(raw)
+        site_hash[key] = LiquidAnyHelper.new_string(raw)
       when Int32, Int64, Float64, Bool
-        site_hash[key] = Liquid::Any.new(raw)
+        site_hash[key] = LiquidAnyHelper.new_numeric(raw)
       when Nil
         # Skip nil values
       when Hash
-        hash = {} of String => Liquid::Any
+        hash = new_liquid_any_hash
         raw.each do |yaml_key, yaml_value|
           hash_key = yaml_key.is_a?(String) ? yaml_key : yaml_key.to_s
           hash[hash_key] = convert_yaml_to_liquid(yaml_value)
         end
-        site_hash[key] = Liquid::Any.new(hash)
+        site_hash[key] = LiquidAnyHelper.new_hash(hash)
       when Array
         array = raw.map { |item| convert_yaml_to_liquid(item) }
-        site_hash[key] = Liquid::Any.new(array)
+        site_hash[key] = LiquidAnyHelper.new_array(array)
       else
-        site_hash[key] = Liquid::Any.new(raw.to_s)
+        site_hash[key] = LiquidAnyHelper.new_string(raw.to_s)
       end
     end
   end
 
   # Build a simplified page hash for Liquid rendering in SCSS
-  private def build_page_hash(resource : Resource) : Hash(String, Liquid::Any)
-    page_hash = {} of String => Liquid::Any
+  private def build_page_hash(resource : Resource) : Hash(String, LiquidAnyType)
+    page_hash = new_liquid_any_hash
 
-    page_hash["url"] = Liquid::Any.new(resource.url.try(&.to_s) || "")
-    page_hash["path"] = Liquid::Any.new(resource.slug || "")
+    page_hash["url"] = LiquidAnyHelper.new_string(resource.url.try(&.to_s) || "")
+    page_hash["path"] = LiquidAnyHelper.new_string(resource.slug || "")
 
     # Add frontmatter data
     resource.frontmatter.each do |k, v|
@@ -146,25 +179,32 @@ class Carafe::Processor::Sass < Carafe::Processor
     page_hash
   end
 
-  # Convert YAML::Any to Liquid::Any
-  private def convert_yaml_to_liquid(value : YAML::Any) : Liquid::Any
+  # Convert YAML::Any to LiquidAnyType
+  private def convert_yaml_to_liquid(value : YAML::Any) : LiquidAnyType
     case raw = value.raw
     when Hash
-      hash = {} of String => Liquid::Any
+      hash = new_liquid_any_hash
       raw.each do |k, v|
         key = k.is_a?(String) ? k : k.to_s
         hash[key] = convert_yaml_to_liquid(v)
       end
-      Liquid::Any.new(hash)
+      LiquidAnyHelper.new_hash(hash)
     when Array
       array = raw.map { |v| convert_yaml_to_liquid(v) }
-      Liquid::Any.new(array)
-    when String, Int32, Int64, Float64, Bool
-      Liquid::Any.new(raw)
+      LiquidAnyHelper.new_array(array)
+    when String
+      LiquidAnyHelper.new_string(raw)
+    when Int32, Int64, Float64, Bool
+      LiquidAnyHelper.new_numeric(raw)
     when Nil
-      Liquid::Any.new("")
+      LiquidAnyHelper.new_string("")
     else
-      Liquid::Any.new(raw.to_s)
+      LiquidAnyHelper.new_string(raw.to_s)
     end
+  end
+
+  # Helper to create a new Hash with LiquidAny values
+  private def new_liquid_any_hash : Hash(String, LiquidAnyType)
+    {} of String => LiquidAnyType
   end
 end

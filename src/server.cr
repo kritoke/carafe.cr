@@ -18,11 +18,28 @@ class Carafe::Server
   end
 
   def start
-    address = @server.bind @uri
-
-    puts "Listening on #{address}"
-
-    @server.listen
+    begin
+      address = @server.bind @uri
+      puts "Listening on #{address}"
+      @server.listen
+    rescue ex
+      msg = ex.message || ""
+      if ex.is_a?(Errno) || msg.includes?("address already in use") || msg.includes?("Permission denied")
+        # Get port from uri
+        port = @uri.is_a?(String) ? @uri : @uri.as(URI).port
+        if msg.includes?("address already in use") || (ex.is_a?(Errno) && ex.errno == Errno::EADDRINUSE)
+          STDERR.puts "Error: Port #{port} is already in use."
+          STDERR.puts "Try specifying a different port with --port=PORT"
+        elsif msg.includes?("Permission denied") || (ex.is_a?(Errno) && ex.errno == Errno::EACCES)
+          STDERR.puts "Error: Permission denied to bind to port #{port}."
+          STDERR.puts "Try using a port above 1024"
+        else
+          STDERR.puts "Error: Server could not bind to #{@uri}"
+          STDERR.puts msg
+        end
+      end
+      raise ex
+    end
   end
 
   def close

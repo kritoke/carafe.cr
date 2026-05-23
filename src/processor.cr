@@ -1,5 +1,11 @@
 require "./site"
 require "./priority"
+require "liquid"
+
+# Capture Liquid types before they might be shadowed by sassd
+alias LiquidAny = ::Liquid::Any
+alias LiquidTemplate = ::Liquid::Template
+alias LiquidContext = ::Liquid::Context
 
 abstract class Carafe::Processor
   record Transformation, processor : Processor, from : String, to : String do

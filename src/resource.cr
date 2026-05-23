@@ -70,19 +70,12 @@ class Carafe::Resource
         if raw.empty?
           Time.local.at_beginning_of_day
         else
-          begin
-            # Try common date formats
-            Time.parse(raw, "%Y-%m-%d %H:%M:%S %z", Time::Location.local)
-          rescue
-            begin
-              Time.parse(raw, "%Y-%m-%d %H:%M", Time::Location.local)
-            rescue
-              begin
-                Time.parse(raw, "%Y-%m-%d", Time::Location.local)
-              rescue
-                Time.local.at_beginning_of_day
-              end
-            end
+          parsed = try_parse_date(raw)
+          if parsed
+            parsed
+          else
+            STDERR.puts "Warning: Could not parse date '#{raw}' in #{@slug}, using midnight today"
+            Time.local.at_beginning_of_day
           end
         end
       else
@@ -90,11 +83,32 @@ class Carafe::Resource
       end
     elsif date = date_and_shortname_from_slug.first
       date
-      # elsif @slug && File.exists?(@slug)
-      #   File.mtime(@slug)
     else
       Time.local.at_beginning_of_day
     end
+  end
+
+  private DATE_FORMATS = [
+    "%Y-%m-%d %H:%M:%S %z",
+    "%Y-%m-%d %H:%M:%S",
+    "%Y-%m-%d %H:%M",
+    "%Y-%m-%d",
+    "%Y/%m/%d %H:%M:%S",
+    "%Y/%m/%d",
+    "%d-%m-%Y",
+    "%m-%d-%Y",
+    "%d %b %Y",
+    "%b %d, %Y",
+  ]
+
+  private def try_parse_date(raw : String) : Time?
+    DATE_FORMATS.each do |fmt|
+      begin
+        return Time.parse(raw, fmt, Time::Location.local)
+      rescue
+      end
+    end
+    nil
   end
 
   def self.url_for(resource : Resource) : URI

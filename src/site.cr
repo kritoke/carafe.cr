@@ -5,6 +5,7 @@ require "./collection"
 require "./plugins/plugin"
 require "./generator/data"
 require "yaml"
+require "mutex"
 
 class Carafe::Site
   getter config : Config
@@ -15,6 +16,9 @@ class Carafe::Site
 
   # Internal storage for collections
   @collections = {} of String => Collection
+
+  # Mutex for thread-safe access to resources
+  @resource_lock : Mutex = Mutex.new
 
   # Internal accessor for collections (for use in Carafe code)
   def collections
@@ -137,14 +141,17 @@ class Carafe::Site
 
   def find(url : String) : Resource?
     url = URI.new(path: url)
-    @files.each do |file|
-      return file if file.url == url
-    end
-    @collections.each_value do |collection|
-      collection.resources.each do |resource|
-        return resource if resource.url == url
+    @resource_lock.synchronize do
+      @files.each do |file|
+        return file if file.url == url
+      end
+      @collections.each_value do |collection|
+        collection.resources.each do |resource|
+          return resource if resource.url == url
+        end
       end
     end
+    nil
   end
 
   def run_processor(io : IO, resource : Resource)

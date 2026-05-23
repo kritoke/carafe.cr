@@ -87,13 +87,18 @@ struct Carafe::Pipeline
       input_ext = File.extname(filename)
       transformation = transformation_for_extension(input_ext)
 
-      transformation.try(&.from) || input_ext
+      # Only use transformation result if one exists, otherwise use raw extension
+      transformation ? transformation.from : input_ext
     end
 
     def format_for(resource : Resource) : String
       ext = format_for_filename(resource.slug)
-
-      "liquid.#{ext}"
+      # Don't add extra dot if ext already starts with dot
+      if ext.starts_with?('.')
+        "liquid#{ext}"
+      else
+        "liquid.#{ext}"
+      end
     end
 
     def pipeline_for(resource : Resource) : Pipeline
@@ -118,30 +123,42 @@ struct Carafe::Pipeline
 
     def create_pipeline(format)
       segments = [] of Processor
-      transformations = @transforms.dup
 
-      loop do
-        format_first = format.partition('.').first
-        transform = transformations.find do |candidate|
-          candidate.from == format || candidate.from == format_first ||
-            (candidate.from_wildcard? && candidate.to_first != format_first)
-        end
-
-        break unless transform
-
-        case {transform.from_wildcard?, transform.to_wildcard?}
-        when {true, false}
-          format = "#{transform.to}.#{format}"
-        when {false, true}
-          format = format.partition('.').last
-        when {false, false}
-          format = transform.to
-        end
-
-        segments << transform.processor
+      # Clean the prefix immediately
+      if format.starts_with?("liquid.")
+        format = format[7..-1]
       end
 
-      Pipeline.new segments
+      # 1. First Pass: Always capture global pre-filters/pre-processors (like Liquid)
+      # that are designed to handle this incoming format before structural mutation
+      @transforms.each do |t|
+        if t.from_wildcard? && t.to == "liquid"
+          segments << t.processor
+        end
+      end
+
+      # 2. Second Pass: Find specific file-type converters matching the exact format
+      # (e.g., "markdown -> html" or "scss -> css")
+      specific_transform = @transforms.find do |t|
+        !t.from_wildcard? && (t.from == format || format.starts_with?(t.from))
+      end
+      
+      if specific_transform
+        segments << specific_transform.processor
+        # Update the target format based on what it converted to
+        format = specific_transform.to
+      end
+
+      # 3. Third Pass: Append terminal layout/output processing blocks
+      layout_transform = @transforms.find do |t|
+        t.from_wildcard? && t.to == "output"
+      end
+
+      if layout_transform && !segments.includes?(layout_transform.processor)
+        segments << layout_transform.processor
+      end
+
+      Pipeline.new(segments.uniq)
     end
   end
 end

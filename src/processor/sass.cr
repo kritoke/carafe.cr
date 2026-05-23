@@ -54,6 +54,15 @@ class Carafe::Processor::Sass < Carafe::Processor
     @site = site
   end
 
+  # Get the theme sass path dynamically (for remote themes integrated during generation)
+  private def get_theme_sass_path : String?
+    if site = @site
+      theme_sass_dir = File.join(site.config.site_dir, "_sass", "minimal-mistakes")
+      return theme_sass_dir if Dir.exists?(theme_sass_dir)
+    end
+    nil
+  end
+
   def process(resource : Resource, input : IO, output : IO) : Bool
     case resource.extname
     when ".sass"
@@ -77,9 +86,16 @@ class Carafe::Processor::Sass < Carafe::Processor
     end
 
     # Use the new Config-based API for cleaner configuration
+    load_paths = [File.join(@site_dir, @include_path)]
+    
+    # Add theme sass path if it exists (for remote themes)
+    if theme_sass = get_theme_sass_path
+      load_paths.insert(0, theme_sass)  # Theme sass first for overrides
+    end
+    
     config = ::Sass::Config.new(
       style: "expanded",
-      load_paths: [File.join(@site_dir, @include_path)],
+      load_paths: load_paths,
       is_indented_syntax_src: indented_syntax
     )
     rendered = ::Sass.compile(source, config)

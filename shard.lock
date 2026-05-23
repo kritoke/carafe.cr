@@ -2,7 +2,7 @@ version: 2.0
 shards:
   ameba:
     git: https://github.com/crystal-ameba/ameba.git
-    version: 1.7.0-dev+git.commit.94ff379e8f3b5677944ab9a97a01aebcfadc2fc1
+    version: 1.7.0-dev+git.commit.f5d1ef6b995a6c103267dd779426f83e0b25aa8c
 
   baked_file_system:
     git: https://github.com/ralsina/baked_file_system.git
@@ -10,11 +10,11 @@ shards:
 
   base58:
     git: https://github.com/crystal-china/base58.cr.git
-    version: 0.1.0+git.commit.f7193c497efff614cf87b03f0bd07741915a592f
+    version: 0.1.0+git.commit.0e2c44d16a8098b00d8bf0b74add8bb9ea2f1c5f
 
   crimage:
     git: https://github.com/naqvis/crimage.git
-    version: 1.0.2+git.commit.0bab3ccf53a6a4e9a6da3a13411bdfc5e930556d
+    version: 1.0.5+git.commit.2b3abbcdca426a2a13a39b986326f9a2f7f65bc6
 
   docopt:
     git: https://github.com/ralsina/docopt.cr.git
@@ -30,7 +30,7 @@ shards:
 
   sassd:
     git: https://github.com/kritoke/sassd.cr.git
-    version: 0.2.0
+    version: 0.3.1+git.commit.3c16f94208fc1ac59b11d3e1b232ec76ece02f5d
 
   serve:
     git: https://github.com/superpaintman/serve.git
@@ -38,9 +38,9 @@ shards:
 
   sixteen:
     git: https://github.com/ralsina/sixteen.git
-    version: 0.6.3
+    version: 0.7.0
 
   tartrazine:
     git: https://github.com/ralsina/tartrazine.git
-    version: 0.20.0
+    version: 0.20.1
 

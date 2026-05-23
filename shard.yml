@@ -1,6 +1,6 @@
 name: carafe
 version: 0.3.0
-crystal: '>= 1.18.2'
+crystal: ">= 1.18.2"
 
 authors:
   - kritoke <3081486+kritoke@users.noreply.github.com>
@@ -23,8 +23,8 @@ dependencies:
   serve:
     github: superpaintman/serve
   sassd:
-      github: kritoke/sassd.cr
-      version: 0.2.0
+    github: kritoke/sassd.cr
+    commit: 3c16f94208fc1ac59b11d3e1b232ec76ece02f5d
 
 development_dependencies:
   ameba:

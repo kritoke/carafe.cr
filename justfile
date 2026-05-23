@@ -32,8 +32,10 @@ dart_zip := dart_base + ".zip"
 dart_url := "https://github.com/sass/dart-sass/releases/download/" + dart_version + "/" + dart_tgz
 dart_url_win := "https://github.com/sass/dart-sass/releases/download/" + dart_version + "/" + dart_zip
 
-# Default recipe - list available commands
+# Default recipe - show help and common tasks
 default:
+    @echo "Carafe.cr - Jekyll-compatible static site generator"
+    @echo ""
     @just --list
 
 # Install all dependencies (sass, shards)
@@ -137,7 +139,7 @@ test:
 test-verbose:
     crystal spec --verbose
 
-# Build the application
+# Build the application (outputs to bin/carafe)
 build:
     shards build
 
@@ -145,7 +147,7 @@ build:
 build-release:
     shards build --release
 
-# Run the application
+# Run the application (use this for development)
 run *ARGS:
     crystal run src/app.cr -- {{ ARGS }}
 

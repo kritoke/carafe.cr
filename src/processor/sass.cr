@@ -55,10 +55,20 @@ class Carafe::Processor::Sass < Carafe::Processor
   end
 
   # Get the theme sass path dynamically (for remote themes integrated during generation)
+  # Looks for any subdirectory in _sass that might be from a remote theme
   private def get_theme_sass_path : String?
     if site = @site
-      theme_sass_dir = File.join(site.config.site_dir, "_sass", "minimal-mistakes")
-      return theme_sass_dir if Dir.exists?(theme_sass_dir)
+      sass_dir = File.join(site.config.site_dir, "_sass")
+      return nil unless Dir.exists?(sass_dir)
+      
+      # Find any subdirectory that could be from a theme
+      # (themes typically put their sass in a subdirectory like "minimal-mistakes")
+      Dir.each_child(sass_dir) do |entry|
+        path = File.join(sass_dir, entry)
+        if Dir.exists?(path) && entry != "sass"
+          return path
+        end
+      end
     end
     nil
   end

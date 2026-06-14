@@ -102,6 +102,22 @@ class Carafe::Server
         return
       end
 
+      # Set content type based on resource extension
+      if slug = resource.slug
+        ext = File.extname(slug).downcase
+        content_type = case ext
+                      when ".json" then "application/json"
+                      when ".css", ".scss", ".sass" then "text/css"
+                      when ".js" then "application/javascript"
+                      when ".html", ".htm" then "text/html"
+                      when ".xml" then "application/xml"
+                      when ".txt" then "text/plain"
+                      when ".svg" then "image/svg+xml"
+                      else nil
+                      end
+        context.response.content_type = content_type if content_type
+      end
+
       @site.run_processor(context.response, resource)
       context.response.close
     end

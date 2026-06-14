@@ -38,6 +38,7 @@ module Carafe::Security
   end
 
   # Ensures a filename doesn't contain path traversal or dangerous characters.
+  # Allows subdirectory paths (e.g., search/search_form.html) which are valid for Jekyll includes.
   def self.sanitize_filename(filename : String) : String?
     return if filename.nil? || filename.empty?
 
@@ -47,14 +48,21 @@ module Carafe::Security
     # Reject path traversal
     return if sanitized.includes?("..")
 
-    # Get just the filename, removing any directory components
-    sanitized = File.basename(sanitized)
+    # Reject absolute paths
+    return if sanitized.starts_with?('/')
+
+    # Normalize path separators
+    sanitized = sanitized.gsub('\\', "/")
+
+    # Split into path components and validate each one
+    parts = sanitized.split('/')
+    parts.each do |part|
+      return if part.empty?
+      return if part.starts_with?('.')
+    end
 
     # Ensure it's not empty after sanitization
     return if sanitized.empty?
-
-    # Reject hidden files (starting with .)
-    return if sanitized.starts_with?('.')
 
     sanitized
   end

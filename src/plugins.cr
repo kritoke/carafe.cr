@@ -1,0 +1,7 @@
+require "./plugins/plugin"
+require "./plugins/content/toc"
+require "./plugins/content/lunr"
+require "./plugins/content/dark_mode"
+require "./plugins/navigation/pagination"
+require "./plugins/themes/remote_theme"
+require "./plugins/compatibility/tags"

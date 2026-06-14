@@ -9,7 +9,6 @@ node_modules/
 
 # Build artifacts
 bin/
-*.cr
 *.beam
 *.o
 *.so
@@ -40,3 +39,13 @@ lib/
 # Jekyll
 _site/
 public/
+
+# ai related
+.kilocode/
+openspec/
+.catseye/
+# Local Pi runtime state
+.atl/
+
+# Ad-hoc test scripts
+test_*.cr

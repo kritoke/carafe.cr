@@ -76,6 +76,26 @@ class Carafe::Server
       end
 
       unless resource
+        # Fallback: serve static files from _site directory
+        dest_dir = File.join(@site.site_dir, @site.config.destination)
+        static_path = File.join(dest_dir, path)
+        if File.exists?(static_path) && !File.directory?(static_path)
+          ext = File.extname(static_path).downcase
+          content_type = case ext
+                        when ".json" then "application/json"
+                        when ".css" then "text/css"
+                        when ".js" then "application/javascript"
+                        when ".html" then "text/html"
+                        when ".xml" then "application/xml"
+                        when ".txt" then "text/plain"
+                        else "application/octet-stream"
+                        end
+          context.response.content_type = content_type
+          context.response.print File.read(static_path)
+          context.response.close
+          return
+        end
+
         context.response.status_code = 404
         context.response.print "Not Found"
         context.response.close

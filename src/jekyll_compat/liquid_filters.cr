@@ -11,6 +11,7 @@ module Carafe::JekyllCompat
 
     def site_url=(url : String)
       @@site_url = url
+      AbsoluteUrl.site_url = url
     end
 
     def baseurl=(url : String)

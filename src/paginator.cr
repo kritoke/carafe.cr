@@ -59,6 +59,50 @@ class Carafe::Paginator
     end
   end
 
+  def first_page : Int32
+    1
+  end
+
+  def last_page : Int32
+    total_pages
+  end
+
+  def first_page_path : String
+    if first = @first
+      first.url.try(&.to_s) || ""
+    else
+      ""
+    end
+  end
+
+  def last_page_path : String
+    if last = @last
+      last.url.try(&.to_s) || ""
+    else
+      ""
+    end
+  end
+
+  def page_trail : Array(PageTrail)
+    trail = [] of PageTrail
+    start = [1, page - 2].max
+    finish = [total_pages, page + 2].min
+    (start..finish).each do |num|
+      page_resource = @pages[num - 1]?
+      path = page_resource.try(&.url).try(&.to_s) || ""
+      trail << PageTrail.new(num, path)
+    end
+    trail
+  end
+
+  class PageTrail
+    getter num : Int32
+    getter path : String
+
+    def initialize(@num : Int32, @path : String)
+    end
+  end
+
   def initialize(@items : Array(Resource), @index : Int, @pages : Array(Resource), @per_page_limit : Int32? = nil)
     @per_page_limit ||= @items.size
   end

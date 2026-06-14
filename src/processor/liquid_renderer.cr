@@ -19,6 +19,12 @@ module Carafe::LiquidRenderer
     context.set("site", LiquidAny.new(build_site_hash(site)))
     context.set("page", LiquidAny.new(build_page_hash(resource)))
 
+    # Populate filter_options with url and baseurl for absolute_url/relative_url filters
+    site_url = site.config["url"]?.try(&.as_s) || ""
+    baseurl = site.config["baseurl"]?.try(&.as_s) || ""
+    context.filter_options["url"] = LiquidAny.new(site_url)
+    context.filter_options["baseurl"] = LiquidAny.new(baseurl)
+
     LiquidTemplate.parse(source).render(context)
   rescue ex
     STDERR.puts "ERROR rendering Liquid in #{resource.slug}: #{ex.message}"

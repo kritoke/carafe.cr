@@ -182,6 +182,7 @@ class Carafe::Processor::Layout < Carafe::Processor
     site_hash["title_separator"] = LiquidAny.new(@site.config["title_separator"]?.try(&.as_s) || "|")
     site_hash["baseurl"] = LiquidAny.new(@site.config["baseurl"]?.try(&.as_s) || "")
     site_hash["url"] = LiquidAny.new(@site.config["url"]?.try(&.as_s) || "")
+    site_hash["description"] = LiquidAny.new(@site.config["description"]?.try(&.as_s) || "")
     site_hash["time"] = LiquidAny.new(Time.local.to_s)
     site_hash
   end
@@ -202,6 +203,21 @@ class Carafe::Processor::Layout < Carafe::Processor
     site_hash["search"] = LiquidAny.new(@site.config["search"]?.try(&.as_bool?) || false)
     if search_provider = @site.config["search_provider"]?.try(&.as_s)
       site_hash["search_provider"] = LiquidAny.new(search_provider)
+    end
+
+    # Add twitter config
+    if twitter_value = @site.config["twitter"]?
+      site_hash["twitter"] = convert_yaml_to_liquid(twitter_value)
+    end
+
+    # Add social config
+    if social_value = @site.config["social"]?
+      site_hash["social"] = convert_yaml_to_liquid(social_value)
+    end
+
+    # Add og_image if present
+    if og_image = @site.config["og_image"]?.try(&.as_s)
+      site_hash["og_image"] = LiquidAny.new(og_image)
     end
   end
 
@@ -415,6 +431,18 @@ class Carafe::Processor::Layout < Carafe::Processor
       paginator_hash["previous_page_path"] = LiquidAny.new(paginator.previous_page_path)
       paginator_hash["next_page"] = LiquidAny.new(paginator.next_page)
       paginator_hash["next_page_path"] = LiquidAny.new(paginator.next_page_path)
+      paginator_hash["first_page"] = LiquidAny.new(paginator.first_page)
+      paginator_hash["last_page"] = LiquidAny.new(paginator.last_page)
+      paginator_hash["first_page_path"] = LiquidAny.new(paginator.first_page_path)
+      paginator_hash["last_page_path"] = LiquidAny.new(paginator.last_page_path)
+
+      page_trail_array = paginator.page_trail.map do |trail|
+        trail_hash = {} of String => LiquidAny
+        trail_hash["num"] = LiquidAny.new(trail.num)
+        trail_hash["path"] = LiquidAny.new(trail.path)
+        LiquidAny.new(trail_hash)
+      end
+      paginator_hash["page_trail"] = LiquidAny.new(page_trail_array)
 
       posts_array = [] of LiquidAny
       paginator.items.each do |item|
@@ -438,6 +466,11 @@ class Carafe::Processor::Layout < Carafe::Processor
       paginator_hash["previous_page_path"] = LiquidAny.new("")
       paginator_hash["next_page"] = LiquidAny.new(nil)
       paginator_hash["next_page_path"] = LiquidAny.new("")
+      paginator_hash["first_page"] = LiquidAny.new(1)
+      paginator_hash["last_page"] = LiquidAny.new(1)
+      paginator_hash["first_page_path"] = LiquidAny.new("")
+      paginator_hash["last_page_path"] = LiquidAny.new("")
+      paginator_hash["page_trail"] = LiquidAny.new([] of LiquidAny)
       paginator_hash["posts"] = LiquidAny.new([] of LiquidAny)
     end
 

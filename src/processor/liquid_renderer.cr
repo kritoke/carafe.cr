@@ -43,18 +43,52 @@ module Carafe::LiquidRenderer
       site_hash[key] = convert_yaml_to_liquid(v)
     end
 
-    # Add collections (e.g., site.resources, site.posts)
+    # Add site.collections as array of {label, docs} for Jekyll compatibility
+    # Templates iterate: {% for c in site.collections %} {% for doc in c.docs %}
+    collections_array = [] of LiquidAny
     site.collections.each do |name, collection|
-      resources_array = collection.resources.map do |resource|
+      collection_hash = new_liquid_any_hash
+      collection_hash["label"] = LiquidAnyHelper.new_string(name)
+      docs_array = collection.resources.map do |resource|
         resource_hash = new_liquid_any_hash
         resource_hash["title"] = LiquidAnyHelper.new_string(resource["title"]?.try(&.as_s) || resource.slug)
         resource_hash["excerpt"] = LiquidAnyHelper.new_string(resource["excerpt"]?.try(&.as_s) || "")
         resource_hash["url"] = LiquidAnyHelper.new_string(resource.url.try(&.to_s) || "")
         resource_hash["path"] = LiquidAnyHelper.new_string(resource.slug || "")
+        resource_hash["content"] = LiquidAnyHelper.new_string(resource.content || "")
+        resource_hash["search"] = LiquidAny.new(true)
+        # Add all frontmatter keys
+        resource.frontmatter.each do |k, v|
+          next if resource_hash.has_key?(k.to_s)
+          resource_hash[k.to_s] = convert_yaml_to_liquid(v)
+        end
+        # Ensure tags is an array (Jekyll converts space-separated strings to arrays)
+        unless resource_hash.has_key?("tags")
+          resource_hash["tags"] = LiquidAny.new([] of LiquidAny)
+        else
+          tags_val = resource_hash["tags"]
+          if (raw = tags_val.raw).is_a?(String)
+            resource_hash["tags"] = LiquidAny.new(raw.split(/\s+/).reject(&.empty?).map { |t| LiquidAny.new(t) })
+          end
+        end
+        # Ensure categories is an array
+        unless resource_hash.has_key?("categories")
+          resource_hash["categories"] = LiquidAny.new([] of LiquidAny)
+        else
+          cat_val = resource_hash["categories"]
+          if (raw = cat_val.raw).is_a?(String)
+            resource_hash["categories"] = LiquidAny.new(raw.split(/\s+/).reject(&.empty?).map { |t| LiquidAny.new(t) })
+          end
+        end
         LiquidAny.new(resource_hash)
       end
-      site_hash[name] = LiquidAny.new(resources_array)
+      collection_hash["docs"] = LiquidAny.new(docs_array)
+      collections_array << LiquidAny.new(collection_hash)
+
+      # Also add as site.<collection_name> for direct access
+      site_hash[name] = LiquidAny.new(docs_array)
     end
+    site_hash["collections"] = LiquidAny.new(collections_array)
 
     # Add site.tags - hash of tag_name => [posts]
     tags_hash = new_liquid_any_hash

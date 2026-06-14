@@ -66,7 +66,8 @@ class Carafe::Server
       elsif path == "/index.html"
         resource = @site.find("/index.html") || @site.find("/")
       elsif !path.includes?('.')
-        resource = @site.find(path + ".html")
+        # Try exact match first, then with .html extension
+        resource = @site.find(path) || @site.find(path + ".html")
       else
         resource = @site.find(path)
         if resource.nil? && path.ends_with?(".html")

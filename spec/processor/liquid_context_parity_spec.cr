@@ -12,7 +12,7 @@ require "../../src/processor/layout"
 # in page context).
 
 describe "Liquid context render parity" do
-  setup_site = ->do
+  setup_site = -> do
     site = Carafe::Site.new
     site.collections["posts"] = Carafe::Collection.new("posts")
     site.collections["posts"].resources << Carafe::Resource.new(site, "2024-03-01-newer.md",
@@ -29,7 +29,7 @@ describe "Liquid context render parity" do
   describe "site.collections.posts.docs.size" do
     it "renders the same value via Liquid and Layout processors" do
       site = setup_site.call
-      assert_parity(site, "{{ site.collections.posts.docs.size }}", "1")
+      assert_parity(site, "{{ site.collections.posts.docs.size }}", "2")
     end
   end
 

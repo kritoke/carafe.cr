@@ -69,7 +69,7 @@ class Carafe::CLI
   end
 
   def run_command(command : String?, options)
-    start = Time.monotonic
+    start = Time.instant
 
     case command
     when "serve"
@@ -86,7 +86,7 @@ class Carafe::CLI
       puts "unrecognised command: #{command}"
     end
 
-    puts "Finished in #{Time.monotonic - start} seconds"
+    puts "Finished in #{Time.instant - start} seconds"
   end
 
   def run_list
@@ -201,12 +201,12 @@ class Carafe::CLI
     @output.print section
     (40 - section.size).times { @output.print '.' }
 
-    start = Time.monotonic
+    start = Time.instant
 
     begin
       yield
     ensure
-      @output.puts " (#{Time.monotonic - start})"
+      @output.puts " (#{Time.instant - start})"
     end
   end
 end

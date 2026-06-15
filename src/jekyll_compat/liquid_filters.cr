@@ -105,12 +105,10 @@ module Carafe::JekyllCompat
             property_value != comparison_value
           when "=="
             property_value == comparison_value
+          when ">=", "<=", ">", "<"
+            compare_values(property_value, comparison_value, operator)
           else
-            begin
-              property_value.to_s != comparison_value.to_s
-            rescue
-              true
-            end
+            false
           end
         else
           true
@@ -125,6 +123,24 @@ module Carafe::JekyllCompat
           if hash_value = item[property]?
             hash_value.is_a?(Liquid::Any) ? hash_value.raw : hash_value
           end
+        end
+      end
+
+      private def self.compare_values(a, b, operator : String) : Bool
+        cmp = if a.is_a?(Number) && b.is_a?(Number)
+                a <=> b
+              else
+                a.to_s <=> b.to_s
+              end
+
+        return false unless cmp
+
+        case operator
+        when ">=" then cmp >= 0
+        when "<=" then cmp <= 0
+        when ">"  then cmp > 0
+        when "<"  then cmp < 0
+        else           false
         end
       end
 

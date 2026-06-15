@@ -1,31 +1,9 @@
 require "sassd"
 require "liquid"
 require "../processor"
-require "./liquid_renderer"
-
-module LiquidAnyHelper
-  extend self
-
-  def new_string(value : String) : Liquid::Any
-    Liquid::Any.new(value)
-  end
-
-  def new_hash(value : Hash(String, LiquidAny)) : Liquid::Any
-    Liquid::Any.new(value)
-  end
-
-  def new_array(value : Array(LiquidAny)) : Liquid::Any
-    Liquid::Any.new(value)
-  end
-
-  def new_numeric(value : Int32 | Int64 | Float64 | Bool) : Liquid::Any
-    Liquid::Any.new(value)
-  end
-end
+require "../jekyll_compat/liquid_context_builder"
 
 class Carafe::Processor::Sass < Carafe::Processor
-  include LiquidRenderer
-
   transforms "sass": "css", "scss": "css"
 
   getter include_path : String
@@ -60,7 +38,7 @@ class Carafe::Processor::Sass < Carafe::Processor
     if site = @site
       sass_dir = File.join(site.config.site_dir, "_sass")
       return nil unless Dir.exists?(sass_dir)
-      
+
       # Find any subdirectory that could be from a theme
       # (themes typically put their sass in a subdirectory like "minimal-mistakes")
       Dir.each_child(sass_dir) do |entry|
@@ -85,20 +63,20 @@ class Carafe::Processor::Sass < Carafe::Processor
 
     source = input.gets_to_end
 
-    # Render Liquid tags in SCSS/Sass files
-    # Uses shared LiquidRenderer module - front matter is already stripped by resource loader
+    # Render Liquid tags in SCSS/Sass files using the canonical context builder
     if has_liquid_tags?(source) && (site = @site)
-      source = render_liquid(source, resource, site)
+      context = Carafe::LiquidContextBuilder.build(site, resource)
+      source = LiquidTemplate.parse(source).render(context)
     end
 
     # Use the new Config-based API for cleaner configuration
     load_paths = [File.join(@site_dir, @include_path)]
-    
+
     # Add theme sass path if it exists (for remote themes)
     if theme_sass = get_theme_sass_path
-      load_paths.insert(0, theme_sass)  # Theme sass first for overrides
+      load_paths.insert(0, theme_sass) # Theme sass first for overrides
     end
-    
+
     config = ::Sass::Config.new(
       style: "expanded",
       load_paths: load_paths,
@@ -108,5 +86,9 @@ class Carafe::Processor::Sass < Carafe::Processor
     output << rendered
 
     true
+  end
+
+  private def has_liquid_tags?(content : String) : Bool
+    content.includes?("{{") || content.includes?("{%")
   end
 end

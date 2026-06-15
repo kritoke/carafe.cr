@@ -49,6 +49,25 @@ class Carafe::Server
   class Handler
     include HTTP::Handler
 
+    # Shared content-type map for all response paths (static fallback + resource).
+    # Returns nil for unknown extensions; callers decide the default.
+    CONTENT_TYPES = {
+      ".json"                  => "application/json",
+      ".css"                   => "text/css",
+      ".scss"                  => "text/css",
+      ".sass"                  => "text/css",
+      ".js"                    => "application/javascript",
+      ".html"                  => "text/html",
+      ".htm"                   => "text/html",
+      ".xml"                   => "application/xml",
+      ".txt"                   => "text/plain",
+      ".svg"                   => "image/svg+xml",
+    }
+
+    def self.content_type_for(ext : String) : String?
+      CONTENT_TYPES[ext.downcase]?
+    end
+
     def initialize(@site : Site)
     end
 
@@ -81,16 +100,7 @@ class Carafe::Server
         dest_dir = File.join(@site.site_dir, @site.config.destination)
         static_path = File.join(dest_dir, path)
         if File.exists?(static_path) && !File.directory?(static_path)
-          ext = File.extname(static_path).downcase
-          content_type = case ext
-                        when ".json" then "application/json"
-                        when ".css" then "text/css"
-                        when ".js" then "application/javascript"
-                        when ".html" then "text/html"
-                        when ".xml" then "application/xml"
-                        when ".txt" then "text/plain"
-                        else "application/octet-stream"
-                        end
+          content_type = self.class.content_type_for(File.extname(static_path)) || "application/octet-stream"
           context.response.content_type = content_type
           context.response.print File.read(static_path)
           context.response.close
@@ -105,17 +115,7 @@ class Carafe::Server
 
       # Set content type based on resource extension
       if slug = resource.slug
-        ext = File.extname(slug).downcase
-        content_type = case ext
-                      when ".json" then "application/json"
-                      when ".css", ".scss", ".sass" then "text/css"
-                      when ".js" then "application/javascript"
-                      when ".html", ".htm" then "text/html"
-                      when ".xml" then "application/xml"
-                      when ".txt" then "text/plain"
-                      when ".svg" then "image/svg+xml"
-                      else nil
-                      end
+        content_type = self.class.content_type_for(File.extname(slug))
         context.response.content_type = content_type if content_type
       end
 

@@ -69,6 +69,15 @@ module Carafe::LiquidContextBuilder
     # site.tags — hash keyed by tag name → array of docs
     site_hash["tags"] = build_tags(site)
 
+    # Expose unmapped config values at site root (Jekyll compatibility).
+    # Templates reference {{ site.author }}, {{ site.twitter }}, etc. directly,
+    # not via {{ site.config.author }}.
+    site.config.yaml_unmapped.each do |k, v|
+      key = k.to_s
+      next if site_hash.has_key?(key)
+      site_hash[key] = convert_yaml_to_liquid(v)
+    end
+
     site_hash
   end
 

@@ -310,6 +310,12 @@ class Carafe::Processor::Layout < Carafe::Processor
           post_hash[k.to_s] = convert_yaml_to_liquid(v)
         end
 
+        # Include defaults (e.g., read_time: true from _config.yml defaults)
+        post.defaults.each do |k, v|
+          next if post_hash.has_key?(k.to_s)
+          post_hash[k.to_s] = convert_yaml_to_liquid(v)
+        end
+
         posts_array << LiquidAny.new(post_hash)
       end
     end
@@ -402,6 +408,15 @@ class Carafe::Processor::Layout < Carafe::Processor
     resource.frontmatter.each do |k, v|
       page_hash[k.to_s] = convert_yaml_to_liquid(v)
     end
+
+    # Include defaults (e.g., read_time: true from _config.yml defaults)
+    resource.defaults.each do |k, v|
+      next if page_hash.has_key?(k.to_s)
+      page_hash[k.to_s] = convert_yaml_to_liquid(v)
+    end
+
+    # Include content for read_time calculation
+    page_hash["content"] = LiquidAny.new(resource.content || "")
 
     unless page_hash.has_key?("layout")
       if layout_value = resource["layout"]?

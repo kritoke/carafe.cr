@@ -37,6 +37,8 @@ module Carafe::JekyllCompat
       register("newline_to_br", NewlineToBr)
       register("strip_html", StripHtml)
       register("strip_newlines", StripNewlines)
+      register("number_of_words", NumberOfWords)
+      register("truncate", Truncate)
       register("truncatewords", Truncatewords)
       register("strip_index", StripIndex)
       register("contains", Contains)
@@ -339,6 +341,32 @@ module Carafe::JekyllCompat
         return Liquid::Any.new("") if data.raw.nil?
         words = args[0]?.try(&.as_i) || 15
         Liquid::Any.new(data.as_s.split(/\s+/)[0, words].join(" "))
+      end
+    end
+
+    class NumberOfWords
+      extend Liquid::Filters::Filter
+
+      def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+        return Liquid::Any.new(0) if data.raw.nil?
+        text = data.as_s.gsub(/<[^>]*>/, "")
+        words = text.split(/\s+/).reject(&.empty?).size
+        Liquid::Any.new(words)
+      end
+    end
+
+    class Truncate
+      extend Liquid::Filters::Filter
+
+      def self.filter(data : Liquid::Any, args : Array(Liquid::Any), options : Hash(String, Liquid::Any)) : Liquid::Any
+        return Liquid::Any.new("") if data.raw.nil?
+        length = args[0]?.try(&.as_i) || 50
+        str = data.as_s
+        if str.size > length
+          Liquid::Any.new(str[0...length] + "...")
+        else
+          Liquid::Any.new(str)
+        end
       end
     end
 

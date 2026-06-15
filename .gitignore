@@ -50,3 +50,4 @@ openspec/
 
 # Ad-hoc test scripts
 test_*.cr
+app

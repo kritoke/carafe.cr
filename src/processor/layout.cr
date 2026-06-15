@@ -31,8 +31,8 @@ class Carafe::Processor::Layout < Carafe::Processor
     loop do
       layout_template, frontmatter = layouts[layout_name.to_s]
 
-      layout_template = process_includes(layout_template, resource)
       layout_template = JekyllCompat::Preprocessor.preprocess(layout_template)
+      layout_template = process_includes(layout_template, resource)
 
       liquid_context = build_liquid_context(resource, content.strip, frontmatter)
 

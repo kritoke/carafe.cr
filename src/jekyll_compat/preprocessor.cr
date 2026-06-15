@@ -221,6 +221,12 @@ module Carafe::JekyllCompat
       when "continue"
         # Remove {% continue %} - not supported
         ""
+      when "include_cached"
+        # Jekyll's include_cached is semantically identical to include for a
+        # static site generator (no request-scoped cache). The liquid shard's
+        # parser regex ([a-z]+) rejects underscores in tag names, so we rewrite
+        # to "include" in-memory before parsing.
+        "{% include #{tag.args} %}"
       else
         tag.content
       end

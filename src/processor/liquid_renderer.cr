@@ -119,6 +119,17 @@ module Carafe::LiquidRenderer
           post_hash["title"] = LiquidAnyHelper.new_string(resource["title"]?.try(&.as_s) || resource.slug)
           post_hash["excerpt"] = LiquidAnyHelper.new_string(resource["excerpt"]?.try(&.as_s) || "")
           post_hash["url"] = LiquidAnyHelper.new_string(resource.url.try(&.to_s) || "")
+          post_hash["content"] = LiquidAnyHelper.new_string(resource.content || "")
+          # Include frontmatter
+          resource.frontmatter.each do |k, v|
+            next if post_hash.has_key?(k.to_s)
+            post_hash[k.to_s] = convert_yaml_to_liquid(v)
+          end
+          # Include defaults (e.g., read_time: true)
+          resource.defaults.each do |k, v|
+            next if post_hash.has_key?(k.to_s)
+            post_hash[k.to_s] = convert_yaml_to_liquid(v)
+          end
           arr << LiquidAny.new(post_hash)
         end
       end

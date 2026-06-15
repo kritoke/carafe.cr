@@ -261,6 +261,20 @@ class Carafe::Processor::Layout < Carafe::Processor
           resource_hash["date"] = LiquidAny.new(resource.date.to_s)
           resource_hash["slug"] = LiquidAny.new(resource.slug)
           resource_hash["collection"] = LiquidAny.new(name)
+          resource_hash["excerpt"] = LiquidAny.new(resource["excerpt"]?.try(&.as_s) || "")
+          resource_hash["content"] = LiquidAny.new(resource.content || "")
+
+          # Include frontmatter
+          resource.frontmatter.each do |k, v|
+            next if resource_hash.has_key?(k.to_s)
+            resource_hash[k.to_s] = convert_yaml_to_liquid(v)
+          end
+
+          # Include defaults (e.g., read_time: true)
+          resource.defaults.each do |k, v|
+            next if resource_hash.has_key?(k.to_s)
+            resource_hash[k.to_s] = convert_yaml_to_liquid(v)
+          end
 
           tags_list = if tags_value.is_a?(YAML::Any)
                         if tags_array = tags_value.as_a?

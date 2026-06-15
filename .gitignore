@@ -45,6 +45,7 @@ public/
 openspec/
 .catseye/
 # Local Pi runtime state
+.pi/
 .atl/
 
 # Ad-hoc test scripts
